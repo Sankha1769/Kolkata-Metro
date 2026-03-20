@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kolkata Metro Fare - Shankho</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --bg-base: #030407;
+        --panel-bg: rgba(12, 16, 24, 0.75);
+        --text-main: #e2e8f0;
+        --text-muted: #64748b;
+        --hud-cyan: #00f0ff;
+        --hud-cyan-dim: rgba(0, 240, 255, 0.2);
+        --scan-line: rgba(0, 240, 255, 0.05);
+    }
+
+    body {
+        background-color: var(--bg-base);
+        color: var(--text-main);
+        font-family: 'Chakra Petch', sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+        padding: 100px 20px 40px 20px;
+        transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: 
+            linear-gradient(var(--scan-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--scan-line) 1px, transparent 1px);
+        background-size: 40px 40px;
+        z-index: -2;
+        pointer-events: none;
+        transition: background-image 0.4s ease;
+    }
+
+    body.light-theme {
+        --bg-base: #f0f4f8;
+        --panel-bg: rgba(255, 255, 255, 0.85);
+        --text-main: #0f172a;
+        --text-muted: #475569;
+        --hud-cyan: #0284c7; 
+        --hud-cyan-dim: rgba(2, 132, 199, 0.2);
+        --scan-line: rgba(0, 0, 0, 0.05);
+    }
+
+    body.light-theme .aegis-nav {
+        background: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    body.light-theme .nav-brand span { color: #000; }
+    body.light-theme .main-title { color: #0f172a; text-shadow: 0 0 10px rgba(2, 132, 199, 0.2); }
+    body.light-theme .module-name { color: #0f172a; }
+    
+    body.light-theme .data-module { border: 1px solid rgba(0,0,0,0.1); }
+    body.light-theme .module-header { background: linear-gradient(90deg, rgba(0,0,0,0.03) 0%, transparent 100%); }
+    body.light-theme .module-header:hover { background: rgba(0,0,0,0.06); }
+    body.light-theme .module-body { background: rgba(255, 255, 255, 0.6); border-top-color: rgba(0,0,0,0.1); }
+    
+    body.light-theme .hud-display-screen { 
+        background: rgba(255, 255, 255, 0.9); 
+        box-shadow: inset 0 0 20px rgba(0,0,0, 0.05); 
+    }
+    body.light-theme .hud-display-screen::after { opacity: 0.1; }
+    body.light-theme .hud-route-terminals { color: #0f172a; text-shadow: none; }
+    body.light-theme .hud-panel { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.1); }
+    body.light-theme .hud-panel-title { color: #0f172a; border-bottom-color: rgba(0,0,0,0.1); }
+    
+    body.light-theme .hud-station-btn { 
+        background: rgba(255, 255, 255, 0.8); 
+        color: #334155; 
+        border-color: rgba(0,0,0,0.1); 
+    }
+    body.light-theme .hud-station-btn:hover { background: rgba(0,0,0,0.05); color: #000; border-color: rgba(0,0,0,0.2); }
+    body.light-theme .hud-station-btn.selected { background: rgba(var(--line-color-rgb), 0.15); color: #000; border-color: var(--line-color); }
+    body.light-theme .hud-station-btn.selected .stn-code { color: #000; font-weight: bold; }
+    
+    body.light-theme .hud-station-btn.elevated { background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(var(--line-color-rgb), 0.05) 100%); }
+    body.light-theme .hud-station-btn.surface { background: repeating-linear-gradient(45deg, rgba(255,255,255,0.8), rgba(255,255,255,0.8) 4px, rgba(var(--line-color-rgb), 0.05) 4px, rgba(var(--line-color-rgb), 0.05) 8px); }
+    
+    body.light-theme .calc-container { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.1); }
+    body.light-theme .calc-select { background: rgba(255,255,255,0.9); color: #0f172a; border-color: rgba(0,0,0,0.2); }
+    body.light-theme .calc-select option { background: #fff; color: #0f172a; }
+    body.light-theme .calc-result-currency { color: #0f172a; }
+    body.light-theme .calc-result-box { border-top-color: rgba(0,0,0,0.1); }
+
+    body.light-theme .module-id,
+    body.light-theme .hud-fare-value {
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .theme-toggle-fixed {
+        position: fixed;
+        top: 12px;
+        right: 30px;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: rgba(8, 11, 17, 0.85);
+        border: 2px solid var(--hud-cyan);
+        color: var(--hud-cyan);
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2000;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .theme-toggle-fixed:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+    }
+
+    body.light-theme .theme-toggle-fixed {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 15px rgba(2, 132, 199, 0.3);
+    }
+    body.light-theme .theme-toggle-fixed:hover {
+        box-shadow: 0 0 25px rgba(2, 132, 199, 0.5);
+    }
+
+    .chat-toggle-fixed {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--hud-cyan);
+        border: none;
+        color: #000;
+        font-size: 1.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2000;
+        box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+        transition: transform 0.3s ease;
+    }
+    .chat-toggle-fixed:hover { transform: scale(1.1); }
+    
+    .chat-window {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 350px;
+        height: 450px;
+        background: var(--panel-bg);
+        border: 1px solid var(--hud-cyan);
+        border-radius: 8px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        transition: opacity 0.3s, transform 0.3s;
+        transform-origin: bottom right;
+    }
+    .chat-window.hidden { opacity: 0; pointer-events: none; transform: scale(0.8); }
+    .chat-header { background: rgba(0, 240, 255, 0.1); border-bottom: 1px solid rgba(0, 240, 255, 0.3); padding: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .chat-header button { background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
+    .chat-body { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .chat-msg { padding: 10px; border-radius: 5px; max-width: 80%; font-size: 0.9rem; }
+    .bot-msg { background: rgba(0, 240, 255, 0.1); align-self: flex-start; border-left: 2px solid var(--hud-cyan); }
+    .user-msg { background: rgba(255, 255, 255, 0.1); align-self: flex-end; border-right: 2px solid #fff; }
+    .chat-input-area { display: flex; border-top: 1px solid rgba(0, 240, 255, 0.3); }
+    .chat-input-area input { flex: 1; background: rgba(0,0,0,0.5); border: none; color: #fff; padding: 15px; outline: none; font-family: 'Chakra Petch', sans-serif; }
+    .chat-input-area button { background: var(--hud-cyan); color: #000; border: none; padding: 0 20px; cursor: pointer; font-weight: bold; }
+    
+    body.light-theme .chat-window { background: rgba(255, 255, 255, 0.95); border-color: rgba(0,0,0,0.2); }
+    body.light-theme .chat-header { background: rgba(0,0,0,0.05); color: #0f172a; border-bottom-color: rgba(0,0,0,0.1); }
+    body.light-theme .chat-header button { color: #0f172a; }
+    body.light-theme .bot-msg { background: rgba(2, 132, 199, 0.1); border-left-color: var(--hud-cyan); color: #0f172a; }
+    body.light-theme .user-msg { background: rgba(0,0,0,0.05); border-right-color: #64748b; color: #0f172a; }
+    body.light-theme .chat-input-area input { background: rgba(255,255,255,0.9); color: #0f172a; }
+    body.light-theme .chat-input-area { border-top-color: rgba(0,0,0,0.1); }
+
+    .aegis-nav {
+        position: fixed;
+        background: rgba(8, 11, 17, 0.85);
+        backdrop-filter: blur(12px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .nav-link {
+        color: var(--text-main);
+        text-decoration: none;
+        font-family: 'Chakra Petch', sans-serif;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 2px;
+        transition: all 0.3s;
+        position: relative;
+        opacity: 0.7;
+    }
+
+    .nav-link:hover, .nav-link.active {
+        color: var(--hud-cyan);
+        opacity: 1;
+        text-shadow: 0 0 10px var(--hud-cyan-dim);
+    }
+
+    @media (min-width: 901px) {
+        .aegis-nav.top-nav {
+            top: 0; left: 0;
+            width: 100%;
+            height: 70px;
+            padding: 0 100px 0 50px; 
+            justify-content: space-between;
+            border-bottom: 2px solid var(--hud-cyan-dim);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 30px) 100%, 30px 100%, 0 calc(100% - 15px));
+        }
+        
+        .aegis-nav.bottom-nav { display: none; }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            color: var(--hud-cyan);
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+        
+        .nav-brand span { color: #fff; transition: color 0.4s ease;}
+        
+        .nav-links-container {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .nav-link { padding: 10px 15px; }
+        
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0;
+            width: 100%; height: 2px;
+            background: var(--hud-cyan);
+            box-shadow: 0 0 10px var(--hud-cyan);
+        }
+    }
+
+    @media (max-width: 900px) {
+        body { padding: 40px 20px 100px 20px; }
+        .aegis-nav.top-nav { display: none; }
+        
+        .aegis-nav.bottom-nav {
+            bottom: 0; left: 0;
+            width: 100%;
+            height: 75px;
+            justify-content: space-around;
+            border-top: 2px solid var(--hud-cyan-dim);
+            clip-path: polygon(30px 0, calc(100% - 30px) 0, 100% 15px, 100% 100%, 0 100%, 0 15px);
+        }
+        
+        .nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            padding: 10px;
+        }
+        
+        .nav-icon {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+        
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: 50%;
+            transform: translateX(-50%);
+            width: 30px; height: 3px;
+            background: var(--hud-cyan);
+            box-shadow: 0 0 10px var(--hud-cyan);
+        }
+
+        .theme-toggle-fixed {
+            top: 15px;
+            right: 15px;
+            bottom: auto;
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+        }
+
+        .chat-toggle-fixed {
+            bottom: 90px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 1.4rem;
+        }
+
+        .chat-window {
+            bottom: 150px;
+            right: 10px;
+            width: calc(100% - 20px);
+            max-width: 350px;
+        }
+    }
+
+    .hud-container {
+        max-width: 1300px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .hud-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 2px solid var(--hud-cyan-dim);
+        padding-bottom: 15px;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .hud-header::after {
+        content: "";
+        position: absolute;
+        bottom: -2px; left: 0;
+        width: 30%;
+        height: 2px;
+        background: var(--hud-cyan);
+        box-shadow: 0 0 10px var(--hud-cyan);
+    }
+
+    .title-group { position: relative; }
+
+    .main-title {
+        font-size: 3rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #fff;
+        text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+        line-height: 1;
+        transition: color 0.4s, text-shadow 0.4s;
+    }
+
+    .sub-title {
+        font-family: 'Share Tech Mono', monospace;
+        color: var(--hud-cyan);
+        font-size: 0.9rem;
+        letter-spacing: 4px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .blinking-cursor {
+        display: inline-block;
+        width: 10px;
+        height: 15px;
+        background: var(--hud-cyan);
+        animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .sys-stats {
+        text-align: right;
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .sys-stats span {
+        color: var(--hud-cyan);
+        margin-left: 10px;
+    }
+
+    .data-module {
+        background: var(--panel-bg);
+        margin-bottom: 20px;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.05);
+        clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeUpIn 0.6s forwards;
+    }
+
+    @keyframes fadeUpIn {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .data-module::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; width: 4px; height: 100%;
+        background: var(--line-color);
+        box-shadow: 0 0 15px var(--line-color);
+        z-index: 10;
+    }
+
+    .module-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 30px;
+        cursor: pointer;
+        position: relative;
+        z-index: 5;
+        background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+    }
+
+    .module-header:hover { background: rgba(255,255,255,0.05); }
+
+    .module-id-group {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .module-id {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--line-color);
+        text-shadow: 0 0 10px rgba(var(--line-color-rgb), 0.5);
+    }
+
+    .module-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: color 0.4s;
+    }
+
+    .module-toggle {
+        color: var(--line-color);
+        font-size: 1.2rem;
+        transition: transform 0.4s ease;
+    }
+
+    .data-module.active .module-toggle {
+        transform: rotate(180deg);
+    }
+
+    .module-body {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.6s cubic-bezier(0.86, 0, 0.07, 1);
+        background: rgba(0, 0, 0, 0.4);
+        position: relative;
+    }
+
+    .data-module.active .module-body {
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .desktop-ui {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .hud-display-screen {
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(var(--line-color-rgb), 0.5);
+        border-radius: 4px;
+        padding: 25px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0 0 20px rgba(var(--line-color-rgb), 0.1);
+        transition: background 0.4s, box-shadow 0.4s;
+    }
+
+    .hud-display-screen::after {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px);
+        pointer-events: none;
+    }
+
+    .hud-route-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 2;
+    }
+
+    .hud-route-label {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        letter-spacing: 2px;
+    }
+
+    .hud-route-terminals {
+        font-size: 1.5rem;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        transition: color 0.4s, text-shadow 0.4s;
+    }
+
+    .hud-route-arrow {
+        color: var(--line-color);
+        font-weight: bold;
+        animation: pulse 1.5s infinite;
+    }
+
+    .hud-fare-box {
+        text-align: right;
+        z-index: 2;
+    }
+
+    .hud-fare-label {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.8rem;
+        color: var(--line-color);
+        letter-spacing: 2px;
+        margin-bottom: 5px;
+    }
+
+    .hud-fare-value {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: var(--line-color);
+        font-family: 'Share Tech Mono', monospace;
+        text-shadow: 0 0 20px rgba(var(--line-color-rgb), 0.6);
+        line-height: 1;
+    }
+
+    .hud-panels-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .hud-panel {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        padding: 20px;
+        transition: all 0.4s;
+    }
+
+    .hud-panel-title {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.9rem;
+        color: #fff;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed rgba(255,255,255,0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: color 0.4s, border-color 0.4s;
+    }
+
+    .hud-panel-title span { color: var(--line-color); }
+
+    .legend-group {
+        display: flex;
+        gap: 15px;
+    }
+
+    .legend-item-tag {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .legend-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+    }
+
+    .legend-box.elevated-box {
+        background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(var(--line-color-rgb), 0.2) 100%);
+        border: 1px solid rgba(var(--line-color-rgb), 0.6);
+    }
+
+    .legend-box.surface-box {
+        background: repeating-linear-gradient(45deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4) 3px, rgba(var(--line-color-rgb), 0.2) 3px, rgba(var(--line-color-rgb), 0.2) 6px);
+        border: 1px dashed rgba(var(--line-color-rgb), 0.6);
+    }
+
+    .hud-station-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding-right: 10px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-color) rgba(0,0,0,0.5);
+    }
+
+    .hud-station-grid::-webkit-scrollbar { width: 4px; }
+    .hud-station-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
+    .hud-station-grid::-webkit-scrollbar-thumb { background: var(--line-color); }
+
+    .hud-station-btn {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: var(--text-muted);
+        padding: 10px 12px;
+        font-family: 'Chakra Petch', sans-serif;
+        font-size: 0.9rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .hud-station-btn.elevated {
+        background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(var(--line-color-rgb), 0.2) 100%);
+        border-color: rgba(var(--line-color-rgb), 0.3);
+    }
+
+    .hud-station-btn.elevated:hover {
+        background: rgba(var(--line-color-rgb), 0.25);
+        border-color: rgba(var(--line-color-rgb), 0.8);
+    }
+
+    .hud-station-btn.elevated.selected {
+        background: rgba(var(--line-color-rgb), 0.4);
+        border-color: var(--line-color);
+        box-shadow: 0 0 15px rgba(var(--line-color-rgb), 0.5);
+    }
+
+    .hud-station-btn.surface {
+        background: repeating-linear-gradient(45deg, rgba(0,0,0,0.4), rgba(0,0,0,0.4) 4px, rgba(var(--line-color-rgb), 0.1) 4px, rgba(var(--line-color-rgb), 0.1) 8px);
+        border-color: rgba(var(--line-color-rgb), 0.4);
+        border-style: dashed;
+    }
+
+    .hud-station-btn.surface:hover {
+        background: rgba(var(--line-color-rgb), 0.2);
+        border-style: solid;
+        border-color: rgba(var(--line-color-rgb), 0.8);
+    }
+
+    .hud-station-btn.surface.selected {
+        background: rgba(var(--line-color-rgb), 0.3);
+        border-style: solid;
+        border-color: var(--line-color);
+        box-shadow: 0 0 15px rgba(var(--line-color-rgb), 0.5);
+    }
+
+    .hud-station-btn .stn-code {
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--line-color);
+    }
+
+    .hud-station-btn:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(var(--line-color-rgb), 0.5);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .hud-station-btn.selected {
+        background: rgba(var(--line-color-rgb), 0.2);
+        border-color: var(--line-color);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(var(--line-color-rgb), 0.3);
+    }
+
+    .hud-station-btn.selected .stn-code {
+        color: #fff;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .mobile-ui {
+        display: none;
+        padding: 30px;
+    }
+
+    .calc-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        background: rgba(0,0,0,0.5);
+        padding: 25px;
+        border: 1px solid rgba(var(--line-color-rgb), 0.3);
+        border-radius: 4px;
+        transition: background 0.4s, border-color 0.4s;
+    }
+
+    .calc-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .calc-label {
+        font-size: 0.8rem;
+        color: var(--line-color);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .calc-select {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 15px;
+        font-family: 'Chakra Petch', sans-serif;
+        font-size: 1.1rem;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        transition: background 0.4s, color 0.4s, border-color 0.4s;
+    }
+
+    .calc-select:focus {
+        border-color: var(--line-color);
+        box-shadow: 0 0 10px rgba(var(--line-color-rgb), 0.3);
+    }
+
+    .calc-select option {
+        background: #0a0e14;
+        color: #fff;
+    }
+
+    .calc-result-box {
+        margin-top: 10px;
+        padding-top: 20px;
+        border-top: 1px dashed rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: border-color 0.4s;
+    }
+
+    .calc-result-label {
+        font-size: 1.2rem;
+        color: var(--text-muted);
+    }
+
+    .calc-result-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--line-color);
+        text-shadow: 0 0 15px rgba(var(--line-color-rgb), 0.5);
+        font-family: 'Share Tech Mono', monospace;
+    }
+
+    .calc-result-currency {
+        font-size: 1.2rem;
+        vertical-align: super;
+        color: #fff;
+        transition: color 0.4s;
+    }
+
+    @media (max-width: 900px) {
+        .desktop-ui { display: none; }
+        .mobile-ui { display: block; }
+        .main-title { font-size: 2.2rem; }
+        .sys-stats { display: none; }
+    }
+
+    
+body, html {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%230047b3'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23ffcc80'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23fff'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23fff'/%3E%3C/svg%3E") 16 16, auto;
+}
+
+a, button, input[type="submit"], input[type="button"] {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%238e24aa'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23fff'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23ffd700'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23ffd700'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+
+input[type="text"], textarea {
+    cursor: text;
+}
+</style>
+</head>
+<body>
+
+<nav class="aegis-nav top-nav">
+    <div class="nav-brand">AEGIS<span>//METRO</span></div>
+    <div class="nav-links-container">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="time_table.html" class="nav-link">Time Table</a>
+        <a href="route.html" class="nav-link">Route Map</a>
+        <a href="fare.html" class="nav-link active">Fare</a>
+    </div>
+</nav>
+
+<nav class="aegis-nav bottom-nav">
+    <a href="index.html" class="nav-link">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+    </a>
+    <a href="route.html" class="nav-link">
+        <span class="nav-icon">📍</span>
+        <span>Route</span>
+    </a>
+    <a href="fare.html" class="nav-link active">
+        <span class="nav-icon">💰</span>
+        <span>Fare</span>
+    </a>
+    <a href="time_table.html" class="nav-link">
+        <span class="nav-icon">🕰️</span>
+        <span>Status</span>
+    </a>
+</nav>
+
+<button id="theme-btn" class="theme-toggle-fixed" title="Toggle Environment">☀️</button>
+
+<button id="juhi-btn" class="chat-toggle-fixed" title="Chat with Juhi">💬</button>
+<div id="juhi-window" class="chat-window hidden">
+    <div class="chat-header">Juhi - Assistant <button id="close-juhi">&times;</button></div>
+    <div class="chat-body" id="juhi-body">
+        <div class="chat-msg bot-msg">Hello! I am Juhi. How can I help you with Kolkata Metro?</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="juhi-input" placeholder="Ask Juhi...">
+        <button id="juhi-send">▶</button>
+    </div>
+</div>
+
+<div class="hud-container">
+    <header class="hud-header">
+        <div class="title-group">
+            <h1 class="main-title">KOLKATA METRO</h1>
+            <div class="sub-title">
+                [FARE] <span class="blinking-cursor"></span>
+            </div>
+        </div>
+        <div class="sys-stats">
+            <div>MODULE STATUS: <span>ONLINE</span></div>
+            <div>LINES INDEXED: <span id="total-lines">05</span></div>
+        </div>
+    </header>
+
+    <div id="modules-container"></div>
+</div>
+
+<script>
+    const themeBtn = document.getElementById('theme-btn');
+    const body = document.body;
+
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    if (currentTheme === 'light') {
+        body.classList.add('light-theme');
+        themeBtn.innerHTML = '🌙';
+    }
+
+    themeBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        if (body.classList.contains('light-theme')) {
+            localStorage.setItem('theme', 'light');
+            themeBtn.innerHTML = '🌙';
+        } else {
+            localStorage.setItem('theme', 'dark');
+            themeBtn.innerHTML = '☀️';
+        }
+    });
+
+    const metroLines = [
+        {
+            id: "L1",
+            name: "Blue Line",
+            color: "#00a8ff",
+            stations: [
+                { code: "KDSW", name: "Dakshineswar", elevated: true }, 
+                { code: "KBAR", name: "Baranagar", elevated: true }, 
+                { code: "KNAP", name: "Noapara", elevated: true },
+                { code: "KDMI", name: "Dum Dum", elevated: true }, 
+                { code: "KBEL", name: "Belgachia" }, 
+                { code: "KSHY", name: "Shyambazar" },
+                { code: "KSHO", name: "Shobhabazar" }, 
+                { code: "KGPK", name: "Girish Park" }, 
+                { code: "KMHR", name: "Mahatma Gandhi Road" },
+                { code: "KCEN", name: "Central" }, 
+                { code: "KCWC", name: "Chandni Chowk" }, 
+                { code: "KESP", name: "Esplanade" },
+                { code: "KPSK", name: "Park Street" }, 
+                { code: "KMDI", name: "Maidan" }, 
+                { code: "KRSD", name: "Rabindra Sadan" },
+                { code: "KNBN", name: "Netaji Bhavan" }, 
+                { code: "KJPK", name: "Jatin Das Park" }, 
+                { code: "KKHG", name: "Kali Ghat" },
+                { code: "KRSB", name: "Rabindra Sarobar" }, 
+                { code: "KMUK", name: "Mahanayak Uttam Kumar", surface: true }, 
+                { code: "KNTJ", name: "Netaji", elevated: true },
+                { code: "KMSN", name: "Masterda Surya Sen", elevated: true }, 
+                { code: "KGTN", name: "Gitanjali", elevated: true }, 
+                { code: "KKNZ", name: "Kavi Nazrul", elevated: true },
+                { code: "KSKD", name: "Shahid Khudiram", elevated: true }, 
+                { code: "KKVS", name: "Kavi Subhash", surface: true }
+            ],
+            fares: [
+                [0, 5, 10, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 25, 25, 25, 25, 25, 25, 25],
+                [5, 0, 10, 10, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 25, 25, 25, 25, 25],
+                [10, 10, 0, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 25, 25, 25],
+                [15, 10, 10, 0, 10, 10, 10, 15, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 25],
+                [15, 15, 10, 10, 0, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 25, 25, 25],
+                [20, 15, 15, 10, 5, 0, 5, 5, 10, 10, 10, 15, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 20, 25],
+                [20, 15, 15, 10, 10, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20, 25],
+                [20, 20, 15, 15, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20, 20],
+                [20, 20, 15, 15, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20, 20],
+                [20, 20, 15, 15, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20, 20],
+                [20, 20, 20, 15, 15, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20, 20],
+                [20, 20, 20, 15, 15, 15, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 15, 20, 20, 20],
+                [20, 20, 20, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 20, 20, 20],
+                [20, 20, 20, 20, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 20, 20],
+                [20, 20, 20, 20, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 15, 20],
+                [20, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15, 20],
+                [20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15, 15],
+                [25, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15, 15],
+                [25, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 10, 15],
+                [25, 25, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10, 15],
+                [25, 25, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10, 10],
+                [25, 25, 25, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10, 10],
+                [25, 25, 25, 20, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5, 10],
+                [25, 25, 25, 25, 25, 20, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5, 5],
+                [25, 25, 25, 25, 25, 20, 20, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10, 10, 10, 5, 5, 0, 5],
+                [25, 25, 25, 25, 25, 25, 25, 20, 20, 20, 20, 20, 20, 20, 20, 20, 15, 15, 15, 15, 10, 10, 10, 5, 5, 0]
+            ]
+        },
+        {
+            id: "L2",
+            name: "Green Line",
+            color: "#4cd137",
+            stations: [
+                { code: "SVSA", name: "Salt Lake Sector-V", elevated: true }, 
+                { code: "KESA", name: "Karunamoyee", elevated: true },
+                { code: "CPSA", name: "Central Park", elevated: true }, 
+                { code: "CCSC", name: "City Centre", elevated: true },
+                { code: "BCSD", name: "Bengal Chemical", elevated: true }, 
+                { code: "SSSA", name: "Salt Lake Stadium", elevated: true },
+                { code: "PBGB", name: "Phoolbagan" }, 
+                { code: "SDHM", name: "Sealdah" },
+                { code: "KESP", name: "Esplanade" }, 
+                { code: "MKNA", name: "Mahakaran" },
+                { code: "HWHM", name: "Howrah Metro" }, 
+                { code: "HWMM", name: "Howrah Maidan" }
+            ],
+            fares: [
+                [0, 5, 10, 10, 10, 10, 20, 20, 30, 30, 30, 30],
+                [5, 0, 5, 5, 10, 10, 20, 20, 30, 30, 30, 30],
+                [10, 5, 0, 5, 10, 10, 10, 20, 20, 30, 30, 30],
+                [10, 5, 5, 0, 5, 5, 10, 20, 20, 20, 30, 30],
+                [10, 10, 10, 5, 0, 5, 10, 10, 20, 20, 30, 30],
+                [10, 10, 10, 5, 5, 0, 5, 10, 20, 20, 20, 30],
+                [20, 20, 10, 10, 10, 5, 0, 10, 10, 20, 20, 20],
+                [20, 20, 20, 20, 10, 10, 10, 0, 10, 10, 20, 20],
+                [30, 30, 20, 20, 20, 20, 10, 10, 0, 5, 10, 10],
+                [30, 30, 30, 20, 20, 20, 20, 10, 5, 0, 10, 10],
+                [30, 30, 30, 30, 30, 20, 20, 20, 10, 10, 0, 5],
+                [30, 30, 30, 30, 30, 30, 20, 20, 10, 10, 5, 0]
+            ]
+        },
+        {
+            id: "L3",
+            name: "Orange Line",
+            color: "#ff9f43",
+            stations: [
+                { code: "KKVS", name: "Kavi Subhash", surface: true }, 
+                { code: "KSJR", name: "Satyajit Ray", elevated: true },
+                { code: "KJNN", name: "Jyotirindra Nandi", elevated: true }, 
+                { code: "KKSK", name: "Kavi Sukanta", elevated: true },
+                { code: "KHMD", name: "Hemanta Mukhopadhyay", elevated: true }, 
+                { code: "KVIB", name: "VIP Bazar", elevated: true },
+                { code: "KRWG", name: "Ritwik Ghatak", elevated: true }, 
+                { code: "KBST", name: "Barun Sengupta", elevated: true },
+                { code: "KBGA", name: "Beliaghata", elevated: true }
+            ],
+            fares: [
+                [0, 5, 10, 10, 20, 20, 20, 20, 20],
+                [5, 0, 5, 10, 10, 10, 20, 20, 20],
+                [10, 5, 0, 5, 10, 10, 10, 20, 20],
+                [10, 10, 5, 0, 5, 10, 10, 10, 20],
+                [20, 10, 10, 5, 0, 5, 10, 10, 10],
+                [20, 10, 10, 10, 5, 0, 5, 10, 10],
+                [20, 20, 10, 10, 10, 5, 0, 5, 10],
+                [20, 20, 20, 10, 10, 10, 5, 0, 5],
+                [20, 20, 20, 20, 10, 10, 10, 5, 0]
+            ]
+        },
+        {
+            id: "L4",
+            name: "Purple Line",
+            color: "#9c88ff",
+            stations: [
+                { code: "KJKA", name: "Joka", elevated: true }, 
+                { code: "KTKP", name: "Thakurpukur", elevated: true },
+                { code: "KSKB", name: "Sakher Bazar", elevated: true }, 
+                { code: "KBCR", name: "Behala Chowrashtra", elevated: true },
+                { code: "KBBR", name: "Behala Bazar", elevated: true }, 
+                { code: "KTRT", name: "Taratala", elevated: true },
+                { code: "KMJH", name: "Majerhat", elevated: true }
+            ],
+            fares: [
+                [0, 5, 10, 10, 20, 20, 20],
+                [5, 0, 5, 10, 10, 20, 20],
+                [10, 5, 0, 5, 10, 10, 20],
+                [10, 10, 5, 0, 5, 10, 10],
+                [20, 10, 10, 5, 0, 5, 10],
+                [20, 20, 10, 10, 5, 0, 5],
+                [20, 20, 20, 10, 10, 5, 0]
+            ]
+        },
+        {
+            id: "L5",
+            name: "Yellow Line",
+            color: "#fbc531",
+            stations: [
+                { code: "KNAP", name: "Noapara", surface: true }, 
+                { code: "KDCM", name: "Dum Dum Cantonment", elevated: true },
+                { code: "KJRO", name: "Jessore Road", surface: true }, 
+                { code: "KJHD", name: "Jai Hind" }
+            ],
+            fares: [
+                [0, 10, 20, 20],
+                [10, 0, 10, 10],
+                [20, 10, 0, 5],
+                [20, 10, 5, 0]
+            ]
+        }
+    ];
+
+    const container = document.getElementById('modules-container');
+
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+    }
+
+    metroLines.forEach((line, index) => {
+        const module = document.createElement('div');
+        module.className = 'data-module';
+        module.style.setProperty('--line-color', line.color);
+        module.style.setProperty('--line-color-rgb', hexToRgb(line.color));
+        module.style.animationDelay = `${index * 0.1}s`;
+
+        let originBtnsHTML = '';
+        let destBtnsHTML = '';
+        let selectOptionsHTML = '<option value="" disabled selected>Select Station</option>';
+
+        line.stations.forEach((stn, rIdx) => {
+            const isElevated = stn.elevated ? 'elevated' : '';
+            const isSurface = stn.surface ? 'surface' : '';
+            const btnClass = `hud-station-btn ${isElevated} ${isSurface}`.trim();
+            
+            const btnHTML = `
+                <button class="${btnClass}" data-index="${rIdx}">
+                    <span class="stn-code">${stn.code}</span>
+                    <span class="stn-name">${stn.name}</span>
+                </button>
+            `;
+            originBtnsHTML += btnHTML;
+            destBtnsHTML += btnHTML;
+            
+            const mobileMarker = stn.elevated ? ' [ELV]' : (stn.surface ? ' [SRF]' : '');
+            selectOptionsHTML += `<option value="${rIdx}">${stn.name} (${stn.code})${mobileMarker}</option>`;
+        });
+
+        module.innerHTML = `
+            <div class="module-header">
+                <div class="module-id-group">
+                    <div class="module-id">${line.id}</div>
+                    <div class="module-name">${line.name} Matrix</div>
+                </div>
+                <div class="module-toggle">▼</div>
+            </div>
+            <div class="module-body">
+                
+                <div class="desktop-ui">
+                    <div class="hud-display-screen">
+                        <div class="hud-route-info">
+                            <div class="hud-route-label">ROUTE UPLINK</div>
+                            <div class="hud-route-terminals">
+                                <span class="hud-origin-disp">AWAITING INPUT</span>
+                                <span class="hud-route-arrow">>></span>
+                                <span class="hud-dest-disp">AWAITING INPUT</span>
+                            </div>
+                        </div>
+                        <div class="hud-fare-box">
+                            <div class="hud-fare-label">COMPUTED FARE</div>
+                            <div class="hud-fare-value">--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="hud-panels-wrapper">
+                        <div class="hud-panel">
+                            <div class="hud-panel-title">
+                                <div><span>[01]</span> SELECT ORIGIN</div>
+                                <div class="legend-group">
+                                    <div class="legend-item-tag"><span class="legend-box elevated-box"></span> ELEV</div>
+                                    <div class="legend-item-tag"><span class="legend-box surface-box"></span> SURF</div>
+                                </div>
+                            </div>
+                            <div class="hud-station-grid hud-origin-grid">${originBtnsHTML}</div>
+                        </div>
+                        <div class="hud-panel">
+                            <div class="hud-panel-title">
+                                <div><span>[02]</span> SELECT TARGET</div>
+                                <div class="legend-group">
+                                    <div class="legend-item-tag"><span class="legend-box elevated-box"></span> ELEV</div>
+                                    <div class="legend-item-tag"><span class="legend-box surface-box"></span> SURF</div>
+                                </div>
+                            </div>
+                            <div class="hud-station-grid hud-dest-grid">${destBtnsHTML}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mobile-ui">
+                    <div class="calc-container">
+                        <div class="calc-group">
+                            <span class="calc-label">Origin Point</span>
+                            <select class="calc-select origin-select" data-line="${index}">
+                                ${selectOptionsHTML}
+                            </select>
+                        </div>
+                        <div class="calc-group">
+                            <span class="calc-label">Destination Point</span>
+                            <select class="calc-select dest-select" data-line="${index}">
+                                ${selectOptionsHTML}
+                            </select>
+                        </div>
+                        <div class="calc-result-box">
+                            <div class="calc-result-label">COMPUTED FARE</div>
+                            <div class="calc-result-value"><span class="calc-result-currency">₹</span><span class="val-display">--</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        module.querySelector('.module-header').addEventListener('click', () => {
+            const isActive = module.classList.contains('active');
+            
+            document.querySelectorAll('.data-module').forEach(mod => {
+                mod.classList.remove('active');
+                mod.querySelector('.module-body').style.maxHeight = null;
+            });
+
+            if (!isActive) {
+                module.classList.add('active');
+                const body = module.querySelector('.module-body');
+                const desktopUI = body.querySelector('.desktop-ui');
+                const mobileUI = body.querySelector('.mobile-ui');
+                
+                const activeUI = window.getComputedStyle(desktopUI).display !== 'none' ? desktopUI : mobileUI;
+                body.style.maxHeight = (activeUI.scrollHeight + 50) + "px";
+            }
+        });
+
+        let desktopOriginIdx = null;
+        let desktopDestIdx = null;
+        const originGrid = module.querySelector('.hud-origin-grid');
+        const destGrid = module.querySelector('.hud-dest-grid');
+        const originDisp = module.querySelector('.hud-origin-disp');
+        const destDisp = module.querySelector('.hud-dest-disp');
+        const fareValueDisp = module.querySelector('.hud-fare-value');
+
+        const updateDesktopFare = () => {
+            if (desktopOriginIdx !== null && desktopDestIdx !== null) {
+                let ticks = 0;
+                const scramble = setInterval(() => {
+                    fareValueDisp.innerText = `₹ ${Math.floor(Math.random() * 50)}`;
+                    ticks++;
+                    if (ticks > 10) {
+                        clearInterval(scramble);
+                        const fare = line.fares[desktopOriginIdx][desktopDestIdx];
+                        fareValueDisp.innerText = `₹ ${fare.toFixed(2)}`;
+                    }
+                }, 30);
+            } else {
+                fareValueDisp.innerText = "--";
+            }
+        };
+
+        originGrid.querySelectorAll('.hud-station-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                originGrid.querySelectorAll('.hud-station-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                desktopOriginIdx = btn.getAttribute('data-index');
+                originDisp.innerText = line.stations[desktopOriginIdx].code;
+                updateDesktopFare();
+            });
+        });
+
+        destGrid.querySelectorAll('.hud-station-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                destGrid.querySelectorAll('.hud-station-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                desktopDestIdx = btn.getAttribute('data-index');
+                destDisp.innerText = line.stations[desktopDestIdx].code;
+                updateDesktopFare();
+            });
+        });
+
+        const originSelect = module.querySelector('.origin-select');
+        const destSelect = module.querySelector('.dest-select');
+        const valDisplay = module.querySelector('.val-display');
+
+        const updateMobileFare = () => {
+            const originVal = originSelect.value;
+            const destVal = destSelect.value;
+            if (originVal !== "" && destVal !== "") {
+                const fare = line.fares[originVal][destVal];
+                valDisplay.innerText = fare.toFixed(2);
+            } else {
+                valDisplay.innerText = "--";
+            }
+        };
+
+        originSelect.addEventListener('change', updateMobileFare);
+        destSelect.addEventListener('change', updateMobileFare);
+
+        container.appendChild(module);
+    });
+
+    window.addEventListener('resize', () => {
+        const activeModule = document.querySelector('.data-module.active');
+        if (activeModule) {
+            const body = activeModule.querySelector('.module-body');
+            const desktopUI = body.querySelector('.desktop-ui');
+            const mobileUI = body.querySelector('.mobile-ui');
+            
+            const activeUI = window.getComputedStyle(desktopUI).display !== 'none' ? desktopUI : mobileUI;
+            body.style.maxHeight = (activeUI.scrollHeight + 50) + "px";
+        }
+    });
+
+    document.getElementById('juhi-btn').addEventListener('click', () => {
+        document.getElementById('juhi-window').classList.remove('hidden');
+    });
+    document.getElementById('close-juhi').addEventListener('click', () => {
+        document.getElementById('juhi-window').classList.add('hidden');
+    });
+
+const juhiInput = document.getElementById('juhi-input');
+const juhiSend = document.getElementById('juhi-send');
+const juhiBody = document.getElementById('juhi-body');
+
+function appendMessage(text, className) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${className}`;
+    msgDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+    juhiBody.appendChild(msgDiv);
+    
+    juhiBody.scrollTop = juhiBody.scrollHeight; 
+}
+
+function handleSendMessage() {
+    const text = juhiInput.value.trim();
+    if (!text) return;
+
+    appendMessage(text, 'user-msg');
+    juhiInput.value = ''; 
+
+    if (window.sendMessageToChatbot) {
+        window.sendMessageToChatbot(text);
+    } else {
+        appendMessage('[SYSTEM ERROR] juhi.js is missing or not loaded.', 'bot-msg');
+    }
+}
+
+juhiSend.addEventListener('click', handleSendMessage);
+juhiInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSendMessage();
+});
+
+window.receiveChatbotReply = function(reply) {
+    appendMessage(reply, 'bot-msg');
+};
+
+</script>
+
+<script src="juhi.js"></script>
+
+</body>
+</html>

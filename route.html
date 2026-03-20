@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kolkata Metro - AEGIS Command UI</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+:root {
+    --bg-base: #f1f5f9;
+    --hud-cyan: #0284c7;
+    --hud-cyan-dim: rgba(2, 132, 199, 0.15);
+    --panel-bg: rgba(255, 255, 255, 0.9);
+    --sub-panel-bg: rgba(0, 0, 0, 0.04);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --scan-line: rgba(2, 132, 199, 0.08);
+    --nav-bg: rgba(255, 255, 255, 0.85);
+    --shadow-cyan: rgba(2, 132, 199, 0.2);
+    --border-dim: rgba(0, 0, 0, 0.1);
+    --node-bg: rgba(0, 0, 0, 0.05);
+    --title-glow: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-theme {
+    --bg-base: #030407;
+    --hud-cyan: #00f0ff;
+    --hud-cyan-dim: rgba(0, 240, 255, 0.2);
+    --panel-bg: rgba(12, 16, 24, 0.75);
+    --sub-panel-bg: rgba(0, 0, 0, 0.4);
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --scan-line: rgba(0, 240, 255, 0.05);
+    --nav-bg: rgba(8, 11, 17, 0.85);
+    --shadow-cyan: rgba(0, 240, 255, 0.15);
+    --border-dim: rgba(255, 255, 255, 0.1);
+    --node-bg: rgba(0, 0, 0, 0.5);
+    --title-glow: rgba(255, 255, 255, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    font-family: 'Chakra Petch', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 40px 20px;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+        linear-gradient(var(--scan-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--scan-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -2;
+    pointer-events: none;
+}
+
+.aegis-nav {
+    position: fixed;
+    background: var(--nav-bg);
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 0 30px var(--shadow-cyan);
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+.nav-link {
+    color: var(--text-main);
+    text-decoration: none;
+    font-family: 'Chakra Petch', sans-serif;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+    position: relative;
+    opacity: 0.7;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--hud-cyan);
+    opacity: 1;
+    text-shadow: 0 0 10px var(--shadow-cyan);
+}
+
+.aegis-nav.bottom-nav {
+    display: none;
+}
+
+.theme-toggle-fixed {
+    position: fixed;
+    top: 12px;
+    right: 30px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--nav-bg);
+    border: 2px solid var(--hud-cyan);
+    color: var(--hud-cyan);
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px var(--shadow-cyan);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.theme-toggle-fixed:hover { 
+    transform: scale(1.1); 
+    box-shadow: 0 0 25px var(--shadow-cyan); 
+}
+
+.chat-toggle-fixed {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--hud-cyan);
+    border: none;
+    color: var(--bg-base);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2000;
+    box-shadow: 0 0 20px var(--shadow-cyan);
+    transition: transform 0.3s ease;
+}
+
+.chat-toggle-fixed:hover { 
+    transform: scale(1.1); 
+}
+
+.chat-window {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    height: 450px;
+    background: var(--panel-bg);
+    border: 1px solid var(--hud-cyan);
+    border-radius: 8px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: opacity 0.3s, transform 0.3s, background 0.4s ease;
+    transform-origin: bottom right;
+}
+
+.chat-window.hidden { 
+    opacity: 0; 
+    pointer-events: none; 
+    transform: scale(0.8); 
+}
+
+.chat-header { 
+    background: var(--hud-cyan-dim); 
+    border-bottom: 1px solid var(--border-dim); 
+    padding: 15px; 
+    font-weight: 600; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    color: var(--text-main); 
+    font-family: 'Chakra Petch', sans-serif;
+}
+
+.chat-header button { 
+    background: none; 
+    border: none; 
+    color: var(--text-main); 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+}
+
+.chat-body { 
+    flex: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    font-family: 'Chakra Petch', sans-serif; 
+    color: var(--text-main);
+}
+
+.chat-msg { 
+    padding: 10px; 
+    border-radius: 5px; 
+    max-width: 80%; 
+    font-size: 0.9rem; 
+}
+
+.bot-msg { 
+    background: var(--hud-cyan-dim); 
+    align-self: flex-start; 
+    border-left: 2px solid var(--hud-cyan); 
+}
+
+.user-msg { 
+    background: var(--node-bg); 
+    align-self: flex-end; 
+    border-right: 2px solid var(--text-muted); 
+}
+
+.chat-input-area { 
+    display: flex; 
+    border-top: 1px solid var(--border-dim); 
+}
+
+.chat-input-area input { 
+    flex: 1; 
+    background: var(--sub-panel-bg); 
+    border: none; 
+    color: var(--text-main); 
+    padding: 15px; 
+    outline: none; 
+    font-family: 'Chakra Petch', sans-serif; 
+}
+
+.chat-input-area button { 
+    background: var(--hud-cyan); 
+    color: var(--bg-base); 
+    border: none; 
+    padding: 0 20px; 
+    cursor: pointer; 
+    font-weight: bold; 
+}
+
+.hud-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid var(--hud-cyan-dim);
+    padding-bottom: 15px;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.hud-header::after {
+    content: "";
+    position: absolute;
+    bottom: -2px; left: 0;
+    width: 30%;
+    height: 2px;
+    background: var(--hud-cyan);
+    box-shadow: 0 0 10px var(--hud-cyan);
+}
+
+.title-group {
+    position: relative;
+}
+
+.main-title {
+    font-size: 3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-main);
+    text-shadow: 0 0 10px var(--title-glow);
+    line-height: 1;
+}
+
+.sub-title {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--hud-cyan);
+    font-size: 0.9rem;
+    letter-spacing: 4px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.blinking-cursor {
+    display: inline-block;
+    width: 10px;
+    height: 15px;
+    background: var(--hud-cyan);
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.sys-stats {
+    text-align: right;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.sys-stats span {
+    color: var(--hud-cyan);
+    margin-left: 10px;
+}
+
+.data-module {
+    background: var(--panel-bg);
+    margin-bottom: 20px;
+    position: relative;
+    border: 1px solid var(--border-dim);
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUpIn 0.6s forwards;
+}
+
+@keyframes fadeUpIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.data-module::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--line-color);
+    box-shadow: 0 0 15px var(--line-color);
+    z-index: 10;
+}
+
+.data-module:hover {
+    background: var(--nav-bg);
+    border-color: var(--hud-cyan-dim);
+    transform: translateX(5px);
+}
+
+.module-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 2fr 100px 50px;
+    align-items: center;
+    padding: 20px 30px;
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
+}
+
+.module-id {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--line-color);
+    text-shadow: 0 0 10px rgba(var(--line-color-rgb), 0.5);
+}
+
+.module-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-main);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.module-terminals {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: var(--text-muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.95rem;
+}
+
+.terminal-node {
+    background: var(--node-bg);
+    padding: 4px 12px;
+    border: 1px solid var(--border-dim);
+    border-radius: 2px;
+    color: var(--text-main);
+}
+
+.terminal-arrow {
+    color: var(--line-color);
+    font-weight: bold;
+    letter-spacing: -2px;
+}
+
+.module-stats {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.module-toggle {
+    color: var(--line-color);
+    font-size: 1.2rem;
+    text-align: right;
+    transition: transform 0.4s ease;
+}
+
+.data-module.active .module-toggle {
+    transform: rotate(180deg);
+}
+
+.module-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.6s cubic-bezier(0.86, 0, 0.07, 1);
+    background: var(--sub-panel-bg);
+    position: relative;
+}
+
+.data-module.active .module-body {
+    border-top: 1px solid var(--border-dim);
+}
+
+.timeline-wrapper {
+    padding: 40px 30px 60px 30px;
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-color) var(--sub-panel-bg);
+}
+
+.timeline-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.timeline-wrapper::-webkit-scrollbar-track {
+    background: var(--sub-panel-bg);
+}
+
+.timeline-wrapper::-webkit-scrollbar-thumb {
+    background: var(--line-color);
+    border-radius: 3px;
+}
+
+.timeline-track {
+    display: inline-flex;
+    position: relative;
+    min-width: 100%;
+}
+
+.timeline-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+    flex-shrink: 0;
+    position: relative;
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.data-module.active .timeline-node {
+    animation: dropNode 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes dropNode {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.node-connector {
+    position: absolute;
+    top: 9px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--line-color);
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.timeline-node:last-child .node-connector {
+    display: none;
+}
+
+.node-point {
+    width: 20px;
+    height: 20px;
+    background: var(--bg-base);
+    border: 3px solid var(--line-color);
+    border-radius: 50%;
+    z-index: 2;
+    position: relative;
+    transition: all 0.3s;
+    box-shadow: 0 0 0 4px var(--sub-panel-bg);
+}
+
+.node-point::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: var(--line-color);
+    border-radius: 50%;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.timeline-node:hover .node-point {
+    box-shadow: 0 0 15px var(--line-color);
+    transform: scale(1.2);
+}
+
+.timeline-node:hover .node-point::after {
+    opacity: 1;
+}
+
+.node-id {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.node-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-main);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    max-height: 140px;
+    text-align: left;
+    white-space: normal;
+    line-height: 1.2;
+    transition: color 0.3s, text-shadow 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timeline-node:hover .node-label {
+    color: var(--line-color);
+    text-shadow: 0 0 8px rgba(var(--line-color-rgb), 0.5);
+}
+
+.dashed-connector {
+    background: transparent !important;
+    border-top: 2px dashed var(--border-dim);
+}
+
+.inactive-station .node-point {
+    background: transparent;
+    border-color: var(--border-dim);
+    box-shadow: none;
+}
+
+.inactive-station .node-label {
+    color: var(--text-muted);
+}
+
+.inactive-station:hover .node-point {
+    border-color: var(--text-muted);
+    box-shadow: 0 0 10px var(--border-dim);
+}
+
+.inactive-station:hover .node-label {
+    color: var(--text-main);
+    text-shadow: none;
+}
+
+.interchange-node-1 .node-point {
+    border-color: var(--int-c1);
+}
+.interchange-node-1 .node-point::after {
+    background: var(--int-c1);
+}
+.interchange-node-1:hover .node-point {
+    box-shadow: 0 0 15px var(--int-c1);
+}
+.interchange-node-1 .node-label {
+    color: var(--int-c1);
+    font-weight: 700;
+}
+.interchange-node-1:hover .node-label {
+    text-shadow: 0 0 8px var(--int-c1);
+}
+
+.interchange-node-2 .node-point {
+    border-color: transparent;
+    background: linear-gradient(var(--bg-base), var(--bg-base)) padding-box,
+                linear-gradient(45deg, var(--int-c1) 0%, var(--int-c2) 100%) border-box;
+}
+.interchange-node-2 .node-point::after {
+    background: linear-gradient(45deg, var(--int-c1) 0%, var(--int-c2) 100%);
+}
+.interchange-node-2:hover .node-point {
+    box-shadow: 0 0 10px var(--int-c1), 0 0 15px var(--int-c2);
+}
+.interchange-node-2 .node-label {
+    background: linear-gradient(to bottom, var(--int-c1) 40%, var(--int-c2) 60%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    display: inline-block;
+}
+.interchange-node-2:hover .node-label {
+    filter: drop-shadow(0 0 5px var(--int-c1)) drop-shadow(0 0 5px var(--int-c2));
+}
+
+@media (min-width: 901px) {
+    body {
+        padding-top: 110px;
+    }
+
+    .aegis-nav.top-nav {
+        top: 0; left: 0;
+        width: 100%;
+        height: 70px;
+        padding: 0 100px 0 50px;
+        justify-content: space-between;
+        border-bottom: 2px solid var(--hud-cyan-dim);
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 30px) 100%, 30px 100%, 0 calc(100% - 15px));
+    }
+    
+    .aegis-nav.bottom-nav { display: none; }
+    
+    .nav-brand {
+        font-size: 1.5rem;
+        color: var(--hud-cyan);
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-shadow: 0 0 15px var(--shadow-cyan);
+    }
+    
+    .nav-brand span { color: var(--text-main); }
+    
+    .nav-links-container {
+        display: flex;
+        gap: 30px;
+    }
+    
+    .nav-link { padding: 10px 15px; }
+    
+    .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -5px; left: 0;
+        width: 100%; height: 2px;
+        background: var(--hud-cyan);
+        box-shadow: 0 0 10px var(--hud-cyan);
+    }
+}
+
+@media (max-width: 1024px) {
+    .module-header {
+        grid-template-columns: 60px 1fr 80px 40px;
+        grid-template-areas: 
+            "id name stats toggle"
+            ". terms terms .";
+        gap: 10px;
+        padding: 15px 20px;
+    }
+    .module-id { grid-area: id; }
+    .module-name { grid-area: name; font-size: 1.1rem; }
+    .module-terminals { grid-area: terms; font-size: 0.8rem; flex-wrap: wrap; }
+    .module-stats { grid-area: stats; }
+    .module-toggle { grid-area: toggle; }
+    .terminal-arrow { display: none; }
+    .terminal-node { padding: 2px 8px; }
+}
+
+@media (max-width: 900px) {
+    body { padding: 40px 20px 100px 20px; }
+    .aegis-nav.top-nav { display: none; }
+    
+    .aegis-nav.bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0; left: 0;
+        width: 100%;
+        height: 75px;
+        background: var(--nav-bg);
+        backdrop-filter: blur(12px);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 2px solid var(--hud-cyan-dim);
+        clip-path: polygon(30px 0, calc(100% - 30px) 0, 100% 15px, 100% 100%, 0 100%, 0 15px);
+        box-shadow: 0 0 30px var(--shadow-cyan);
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .aegis-nav.bottom-nav .nav-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        padding: 10px;
+        color: var(--text-main);
+        text-decoration: none;
+        font-family: 'Chakra Petch', sans-serif;
+        text-transform: uppercase;
+        font-weight: 600;
+        opacity: 0.7;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .aegis-nav.bottom-nav .nav-link.active, 
+    .aegis-nav.bottom-nav .nav-link:hover {
+        color: var(--hud-cyan);
+        opacity: 1;
+    }
+
+    .aegis-nav.bottom-nav .nav-link.active::before {
+        content: '';
+        position: absolute;
+        top: -2px; left: 50%;
+        transform: translateX(-50%);
+        width: 30px; height: 3px;
+        background: var(--hud-cyan);
+        box-shadow: 0 0 10px var(--hud-cyan);
+    }
+
+    .aegis-nav.bottom-nav .nav-icon {
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    .theme-toggle-fixed { top: 15px; right: 15px; width: 40px; height: 40px; font-size: 1.1rem; }
+    .chat-toggle-fixed { bottom: 90px; right: 20px; width: 50px; height: 50px; font-size: 1.4rem; }
+    .chat-window { bottom: 150px; right: 10px; width: calc(100% - 20px); max-width: 350px; }
+}
+
+@media (max-width: 600px) {
+    .main-title { font-size: 2rem; }
+    .sys-stats { display: none; }
+    
+    .timeline-wrapper {
+        padding: 30px 20px;
+        overflow-y: auto;
+        max-height: 60vh;
+    }
+    
+    .timeline-track {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .timeline-node {
+        flex-direction: row;
+        width: 100%;
+        min-height: 60px;
+        align-items: flex-start;
+        transform: translateX(-20px);
+    }
+    
+    @keyframes dropNode {
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    .node-connector {
+        top: 20px;
+        left: 9px;
+        width: 2px;
+        height: 100%;
+    }
+
+    .dashed-connector {
+        border-top: none;
+        border-left: 2px dashed var(--border-dim);
+        background: transparent !important;
+    }
+    
+    .node-point {
+        margin-top: 0;
+        flex-shrink: 0;
+    }
+    
+    .node-id {
+        margin-top: 2px;
+        margin-left: 20px;
+        margin-bottom: 0;
+        width: 40px;
+    }
+    
+    .node-label {
+        writing-mode: horizontal-tb;
+        transform: none;
+        max-height: none;
+        margin-top: 0;
+        margin-left: 10px;
+        white-space: normal;
+        line-height: 1.2;
+    }
+    
+    .interchange-node-2 .node-label {
+        background: linear-gradient(to right, var(--int-c1) 40%, var(--int-c2) 60%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+}
+
+
+body, html {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%230047b3'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23ffcc80'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23fff'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23fff'/%3E%3C/svg%3E") 16 16, auto;
+}
+
+a, button, input[type="submit"], input[type="button"] {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%238e24aa'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23fff'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23ffd700'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23ffd700'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+
+input[type="text"], textarea {
+    cursor: text;
+}
+</style>
+</head>
+<body>
+
+    <nav class="aegis-nav top-nav">
+        <div class="nav-brand">AEGIS<span>//METRO</span></div>
+        <div class="nav-links-container">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="time_table.html" class="nav-link ">Time Table</a>
+            <a href="route.html" class="nav-link active">Route</a>
+            <a href="fare.html" class="nav-link">Fare</a>
+        </div>
+    </nav>
+
+    <nav class="aegis-nav bottom-nav">
+        <a href="index.html" class="nav-link">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="route.html" class="nav-link active">
+            <span class="nav-icon">📍</span>
+            <span>Route</span>
+        </a>
+        <a href="fare.html" class="nav-link">
+            <span class="nav-icon">💰</span>
+            <span>Fare</span>
+        </a>
+        <a href="time_table.html" class="nav-link">
+            <span class="nav-icon">🕰️</span>
+            <span>Status</span>
+        </a>
+    </nav>
+
+    <button id="theme-btn" class="theme-toggle-fixed" title="Toggle Environment">🌙</button>
+
+    <button id="juhi-btn" class="chat-toggle-fixed" title="Chat with Juhi">💬</button>
+    <div id="juhi-window" class="chat-window hidden">
+        <div class="chat-header">Juhi - Assistant <button id="close-juhi">&times;</button></div>
+        <div class="chat-body" id="juhi-body">
+            <div class="chat-msg bot-msg">Hello! I am Juhi. How can I help you with Kolkata Metro routes today?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="juhi-input" placeholder="Ask Juhi...">
+            <button id="juhi-send">▶</button>
+        </div>
+    </div>
+
+<div class="hud-container">
+    <header class="hud-header">
+        <div class="title-group">
+            <h1 class="main-title">Kolkata_Metro</h1>
+            <div class="sub-title">
+                [AEGIS DB_LINK.ACTIVE] <span class="blinking-cursor"></span>
+            </div>
+        </div>
+        <div class="sys-stats">
+            <div>NETWORK STATUS: <span>OPTIMAL</span></div>
+            <div>ACTIVE NODES: <span id="total-nodes-counter">00</span></div>
+        </div>
+    </header>
+
+    <div id="modules-container"></div>
+</div>
+
+<script>
+    const themeBtn = document.getElementById('theme-btn');
+    const body = document.body;
+
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    if (currentTheme === 'dark') {
+        body.classList.add('dark-theme');
+        themeBtn.innerHTML = '☀️';
+    } else {
+        themeBtn.innerHTML = '🌙';
+    }
+
+    themeBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        if (body.classList.contains('dark-theme')) {
+            localStorage.setItem('theme', 'dark');
+            themeBtn.innerHTML = '☀️';
+        } else {
+            localStorage.setItem('theme', 'light');
+            themeBtn.innerHTML = '🌙';
+        }
+    });
+
+    document.getElementById('juhi-btn').addEventListener('click', () => {
+        document.getElementById('juhi-window').classList.remove('hidden');
+    });
+    document.getElementById('close-juhi').addEventListener('click', () => {
+        document.getElementById('juhi-window').classList.add('hidden');
+    });
+
+const metroData = [
+    {
+        id: "L1",
+        name: "Blue Line",
+        color: "#00a8ff",
+        activeCount: 24,
+        stations: ["Dakshineswar", "Noapara", "Dum Dum", "Belgachia", "Shyambazar", "Sovabazar Sutanuti", "Girish Park", "MG Road", "Central", "Chandni Chowk", "Esplanade", "Park Street", "Maidan", "Rabindra Sadan", "Netaji Bhavan", "Jatin Das Park", "Kalighat", "Rabindra Sarobar", "Mahanayak Uttam Kumar", "Netaji", "Masterda Surya Sen", "Gitanjali", "Kavi Nazrul", "Shahid Khudiram", "Kavi Subhash"]
+    },
+    {
+        id: "L2",
+        name: "Green Line",
+        color: "#4cd137",
+        activeCount: 12,
+        stations: ["Howrah Maidan", "Howrah", "Mahakaran", "Esplanade", "Sealdah", "Phoolbagan", "Salt Lake Stadium", "Bengal Chemical", "City Centre", "Central Park", "Karunamoyee", "Salt Lake Sector V"]
+    },
+    {
+        id: "L3",
+        name: "Orange Line",
+        color: "#ff9f43",
+        activeCount: 9,
+        stations: [
+            "Kavi Subhash (New Garia)", "Satyajit Ray (Metropolis)", "Jyotirindra Nandi (Mukundapur)", "Kavi Sukanta (Kalikapur)", 
+            "Hemanta Mukhopadhyay (Ruby More)", "VIP Bazar", "Ritwik Ghatak (Bantala Road)", "Barun Sengupta (ITC Sonar Bangla)", 
+            "Beleghata", "Gour Kishore Ghosh (Chingrighata)", "Nalban (Nicco Park)", "IT Centre", 
+            "Nabadiganta (Technopolis)", "Nazrul Tirtha", "Swapnabhor", "Biswa Bangla Convention Centre", 
+            "Shiksha Tirtha", "Mother's Wax Museum", "Eco Park", "Mangaldeep", 
+            "City Centre-2", "Chinar Park", "VIP Road (Haldiram)", "Jai Hind"
+        ]
+    },
+    {
+        id: "L4",
+        name: "Purple Line",
+        color: "#9c88ff",
+        activeCount: 7,
+        stations: ["Joka", "Thakurpukur", "Sakherbazar", "Behala Chowrasta", "Behala Bazar", "Taratala", "Majerhat", "Mominpur", "Kidderpore", "Victoria", "Park Street", "Esplanade"]
+    },
+    {
+        id: "L5",
+        name: "Yellow Line",
+        color: "#fbc531",
+        activeCount: 4,
+        stations: ["Noapara", "Dum Dum Cantt", "Jessore Road", "Biman Bandar", "Birati", "Michael Nagar", "New Barrackpore", "Madhyamgram", "Hridaypur", "Barasat"]
+    },
+    {
+        id: "L6",
+        name: "Pink Line",
+        color: "#fd79a8",
+        activeCount: 0,
+        stations: ["Baranagar", "Kamarhati", "Agarpara", "Sodepur", "Panihati", "Khardaha", "Titagarh", "Barrackpore"]
+    }
+];
+
+const interchangeData = {
+    "Kavi Subhash": ["L1", "L3"],
+    "Esplanade": ["L1", "L2", "L4"],
+    "Salt Lake Sector V": ["L2", "L3"],
+    "Noapara": ["L1", "L5"],
+    "Jai Hind": ["L3", "L5"],
+    "Park Street": ["L1", "L4"]
+};
+
+const container = document.getElementById('modules-container');
+let totalNodes = 0;
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+}
+
+function formatStationName(name) {
+    if (name.length > 12 && name.includes(' ')) {
+        const words = name.split(' ');
+        if (words.length >= 2) {
+            const midIndex = Math.ceil(words.length / 2);
+            return `${words.slice(0, midIndex).join(' ')}<br>${words.slice(midIndex).join(' ')}`;
+        }
+    }
+    return name;
+}
+
+function getIntersectingColors(stationName, currentLineId) {
+    for (let key in interchangeData) {
+        if (stationName.includes(key)) {
+            const lines = interchangeData[key];
+            if (lines.includes(currentLineId)) {
+                return lines
+                    .filter(id => id !== currentLineId)
+                    .map(id => metroData.find(l => l.id === id).color);
+            }
+        }
+    }
+    return null;
+}
+
+metroData.forEach((line, index) => {
+    totalNodes += line.activeCount;
+    
+    const startStation = line.stations[0];
+    const endStation = line.stations[line.stations.length - 1];
+    const totalStations = line.stations.length;
+    
+    const module = document.createElement('div');
+    module.className = 'data-module';
+    module.style.setProperty('--line-color', line.color);
+    module.style.setProperty('--line-color-rgb', hexToRgb(line.color));
+    module.style.animationDelay = `${index * 0.15}s`;
+
+    let timelineHTML = '';
+    line.stations.forEach((station, sIdx) => {
+        const isNodeActive = sIdx < line.activeCount;
+        const isConnActive = isNodeActive && (sIdx + 1 < line.activeCount);
+        const formattedStation = formatStationName(station);
+        
+        const intersectingColors = getIntersectingColors(station, line.id);
+        const isStationInterchange = intersectingColors && intersectingColors.length > 0;
+        
+        let nodeClasses = ['timeline-node'];
+        if (isNodeActive) nodeClasses.push('active-station');
+        else nodeClasses.push('inactive-station');
+        
+        let pointStyle = "";
+        if (isStationInterchange) {
+            if (intersectingColors.length === 1) {
+                nodeClasses.push('interchange-node-1');
+                pointStyle = `--int-c1: ${intersectingColors[0]};`;
+            } else if (intersectingColors.length >= 2) {
+                nodeClasses.push('interchange-node-2');
+                pointStyle = `--int-c1: ${intersectingColors[0]}; --int-c2: ${intersectingColors[1]};`;
+            }
+        }
+        
+        timelineHTML += `
+            <div class="${nodeClasses.join(' ')}" style="animation-delay: ${sIdx * 0.05}s; ${pointStyle}">
+                <div class="node-connector ${isConnActive ? '' : 'dashed-connector'}"></div>
+                <div class="node-point" ${isStationInterchange ? 'title="Interchange Station"' : ''}></div>
+                <div class="node-id">S-${(sIdx + 1).toString().padStart(2, '0')}</div>
+                <div class="node-label">${formattedStation}</div>
+            </div>
+        `;
+    });
+
+    module.innerHTML = `
+        <div class="module-header">
+            <div class="module-id">${line.id}</div>
+            <div class="module-name">${line.name}</div>
+            <div class="module-terminals">
+                <span class="terminal-node">${startStation}</span>
+                <span class="terminal-arrow">>></span>
+                <span class="terminal-node">${endStation}</span>
+            </div>
+            <div class="module-stats">
+                <div class="stat-value">${line.activeCount}<span style="font-size: 0.6em; color: var(--text-muted)">/${totalStations}</span></div>
+                <div class="stat-label">Active / Total</div>
+            </div>
+            <div class="module-toggle">▼</div>
+        </div>
+        <div class="module-body">
+            <div class="timeline-wrapper">
+                <div class="timeline-track">
+                    ${timelineHTML}
+                </div>
+            </div>
+        </div>
+    `;
+
+    module.querySelector('.module-header').addEventListener('click', () => {
+        const isActive = module.classList.contains('active');
+        
+        document.querySelectorAll('.data-module').forEach(mod => {
+            mod.classList.remove('active');
+            mod.querySelector('.module-body').style.maxHeight = null;
+        });
+
+        if (!isActive) {
+            module.classList.add('active');
+            const body = module.querySelector('.module-body');
+            const wrapper = body.querySelector('.timeline-wrapper');
+            body.style.maxHeight = (wrapper.offsetHeight + 50) + "px";
+        }
+    });
+
+    container.appendChild(module);
+});
+
+document.getElementById('total-nodes-counter').innerText = totalNodes;
+
+window.addEventListener('resize', () => {
+    const activeModule = document.querySelector('.data-module.active');
+    if (activeModule) {
+        const body = activeModule.querySelector('.module-body');
+        const wrapper = body.querySelector('.timeline-wrapper');
+        if(wrapper) {
+            body.style.maxHeight = (wrapper.offsetHeight + 50) + "px";
+        }
+    }
+});
+
+const juhiInput = document.getElementById('juhi-input');
+const juhiSend = document.getElementById('juhi-send');
+const juhiBody = document.getElementById('juhi-body');
+
+function appendMessage(text, className) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${className}`;
+    msgDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+    juhiBody.appendChild(msgDiv);
+    
+    juhiBody.scrollTop = juhiBody.scrollHeight; 
+}
+
+function handleSendMessage() {
+    const text = juhiInput.value.trim();
+    if (!text) return;
+
+    appendMessage(text, 'user-msg');
+    juhiInput.value = ''; 
+
+    if (window.sendMessageToChatbot) {
+        window.sendMessageToChatbot(text);
+    } else {
+        appendMessage('[SYSTEM ERROR] juhi.js is missing or not loaded.', 'bot-msg');
+    }
+}
+
+juhiSend.addEventListener('click', handleSendMessage);
+juhiInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') handleSendMessage();
+});
+
+window.receiveChatbotReply = function(reply) {
+    appendMessage(reply, 'bot-msg');
+};
+
+</script>
+<script src="juhi.js"></script>
+</body>
+</html>

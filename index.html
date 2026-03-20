@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kolkata Metro - The Lifeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: #050505;
+    font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
+    color: #fff;
+    transition: background-color 0.5s ease, color 0.5s ease;
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%230047b3'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23ffcc80'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23fff'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23fff'/%3E%3C/svg%3E") 16 16, auto;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+a, button, .theme-toggle {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%238e24aa'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23fff'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23ffd700'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23ffd700'/%3E%3C/svg%3E") 16 16, pointer !important;
+}
+
+nav {
+    position: fixed;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    background: rgba(5, 5, 5, 0.7);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: center;
+    padding: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+nav ul {
+    display: flex;
+    gap: 3rem;
+    list-style: none;
+}
+
+nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+nav a:hover, nav a.active {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.theme-toggle {
+    position: fixed;
+    right: 2rem;
+    top: 1.1rem;
+    background: rgba(5, 5, 5, 0.7);
+    padding: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    z-index: 105;
+    color: rgba(255,255,255,0.7);
+    transition: color 0.3s ease, background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-toggle:hover {
+    color: #fff;
+}
+
+#app-footer {
+    position: fixed; 
+    bottom: 0; 
+    width: 100%; 
+    background: rgba(5, 5, 5, 0.9); 
+    backdrop-filter: blur(10px); 
+    border-top: 1px solid rgba(255,255,255,0.1); 
+    padding: 1rem; 
+    text-align: center; 
+    z-index: 99; 
+    color: rgba(255,255,255,0.6); 
+    font-size: 0.85rem;
+}
+
+body[data-theme="light"] { background-color: #f4f6f9; color: #1a1a1a; }
+body[data-theme="light"] nav { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(0,0,0,0.1); }
+body[data-theme="light"] nav a { color: rgba(0,0,0,0.6); }
+body[data-theme="light"] nav a:hover, body[data-theme="light"] nav a.active { color: #0047b3; text-shadow: none; }
+body[data-theme="light"] nav a.active::before { background: #0047b3; box-shadow: 0 2px 8px rgba(0, 71, 179, 0.4); }
+body[data-theme="light"] .theme-toggle { background: rgba(255, 255, 255, 0.9); color: rgba(0,0,0,0.6); border: 1px solid rgba(0,0,0,0.1); }
+body[data-theme="light"] .theme-toggle:hover { color: #000; }
+body[data-theme="light"] #app-footer { background: rgba(255, 255, 255, 0.9); border-top: 1px solid rgba(0,0,0,0.1); color: rgba(0,0,0,0.6); }
+
+body[data-theme="light"] .card-face { background-color: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(0,0,0,0.1); }
+body[data-theme="light"] .card-back { background-color: #f8f9fa; }
+body[data-theme="light"] .back-text { color: #555; }
+body[data-theme="light"] .back-logo { color: rgba(0,0,0,0.05); }
+
+body[data-theme="light"] .bg-0 { background: radial-gradient(circle at 80% 20%, #e6f0ff 0%, #b3d4ff 40%, #f0f8ff 100%); }
+body[data-theme="light"] .bg-1 { background: radial-gradient(circle at 80% 50%, #e6ffe6 0%, #b3ffcc 40%, #f0fff0 100%); }
+body[data-theme="light"] .bg-2 { background: radial-gradient(circle at 20% 50%, #fff0e6 0%, #ffd4b3 40%, #fff8f0 100%); }
+body[data-theme="light"] .bg-3 { background: radial-gradient(circle at 20% 80%, #f9e6ff 0%, #e6b3ff 40%, #fcf0ff 100%); }
+body[data-theme="light"] .bg-4 { background: radial-gradient(circle at 50% 50%, #f2f2f2 0%, #cccccc 40%, #ffffff 100%); }
+body[data-theme="light"] .bg-5 { background: radial-gradient(circle at 20% 80%, #ffffe6 0%, #ffffb3 40%, #fffff0 100%); }
+body[data-theme="light"] .bg-6 { background: radial-gradient(circle at 50% 80%, #ffe6e6 0%, #ffb3b3 40%, #fff0f0 100%); }
+
+body[data-theme="light"] .metro-logo { background: rgba(0,0,0,0.05); color: #333; border: 1px solid rgba(0,0,0,0.2); }
+body[data-theme="light"] .brand-name { color: #111; text-shadow: none; }
+body[data-theme="light"] .smart-card-text { color: #555; }
+body[data-theme="light"] .card-number { color: #222; text-shadow: none; }
+body[data-theme="light"] .status-text { color: #666; }
+body[data-theme="light"] .contactless-icon { stroke: #333; }
+body[data-theme="light"] .contactless-icon circle { fill: #333; }
+
+body[data-theme="light"][data-section="3"] .card-face { box-shadow: 0 40px 80px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(0, 0, 0, 0.1); }
+body[data-theme="light"][data-section="3"] .contactless-icon { filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
+
+body[data-theme="light"] .text-content { text-shadow: none; background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.1); border-radius: 15px; }
+body[data-theme="light"] .sec-desc { color: #555 !important; }
+body[data-theme="light"] .route-item { color: #444; }
+body[data-theme="light"] .fare-table { color: #333; }
+body[data-theme="light"] .fare-table th, body[data-theme="light"] .fare-table td { border-bottom: 1px solid rgba(0,0,0,0.1); }
+body[data-theme="light"] .fare-table th { color: #b38f00; border-bottom: 2px solid rgba(179, 143, 0, 0.4); }
+body[data-theme="light"] .restricted-list li { color: #aa2424; }
+
+body[data-theme="light"][data-section="0"] .sec-title, body[data-theme="light"][data-section="0"] .status-value { color: #0047b3; text-shadow: none;}
+body[data-theme="light"][data-section="1"] .sec-title, body[data-theme="light"][data-section="1"] .status-value { color: #008040; text-shadow: none;}
+body[data-theme="light"][data-section="2"] .sec-title, body[data-theme="light"][data-section="2"] .status-value { color: #cc6600; text-shadow: none;}
+body[data-theme="light"][data-section="3"] .sec-title, body[data-theme="light"][data-section="3"] .status-value { color: #6a1b9a; text-shadow: none;}
+body[data-theme="light"][data-section="4"] .sec-title, body[data-theme="light"][data-section="4"] .status-value { color: #333333; text-shadow: none;}
+body[data-theme="light"][data-section="5"] .sec-title, body[data-theme="light"][data-section="5"] .status-value { color: #b38f00; text-shadow: none;}
+body[data-theme="light"][data-section="6"] .sec-title, body[data-theme="light"][data-section="6"] .status-value { color: #cc0000; text-shadow: none;}
+
+body[data-theme="light"] #environment-glow { background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.05) 0%, transparent 70%) !important; }
+
+#environment-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 71, 179, 0.1) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+    transition: background 1.5s ease;
+}
+
+#fixed-card-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 5;
+    perspective: 1200px;
+    pointer-events: none;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+}
+
+.card-positioner {
+    position: absolute;
+    width: 85.6vw;
+    max-width: 450px;
+    aspect-ratio: 1.586 / 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotateY(0deg) rotateX(0deg) scale(1);
+    transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1), top 1.5s cubic-bezier(0.25, 1, 0.5, 1), left 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+    transform-style: preserve-3d;
+}
+
+.metro-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.4s ease-out;
+    transform-style: preserve-3d;
+}
+
+.card-face {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    backface-visibility: hidden;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.1);
+    background-color: #111;
+    transition: box-shadow 1.5s ease, background-color 0.5s ease;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background-color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+}
+
+.mag-stripe {
+    width: 100%;
+    height: 15%;
+    background: #000;
+    margin-top: 10%;
+    opacity: 0.9;
+}
+
+.back-text {
+    padding: 8%;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.6);
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.back-logo {
+    position: absolute;
+    bottom: 5%;
+    right: 8%;
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    color: rgba(255,255,255,0.05);
+    font-weight: 800;
+}
+
+.layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.bg-layer {
+    opacity: 0;
+    transition: opacity 1.5s ease;
+}
+
+.bg-0 { background: radial-gradient(circle at 80% 20%, #001f3f 0%, #0047b3 40%, #000a1a 100%); }
+.bg-1 { background: radial-gradient(circle at 80% 50%, #00331a 0%, #00a859 40%, #001a0d 100%); }
+.bg-2 { background: radial-gradient(circle at 20% 50%, #663300 0%, #ff8c00 40%, #1a0d00 100%); }
+.bg-3 { background: radial-gradient(circle at 20% 80%, #2a004d 0%, #8e24aa 40%, #0d001a 100%); }
+.bg-4 { background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #333 40%, #000 100%); }
+.bg-5 { background: radial-gradient(circle at 20% 80%, #332b00 0%, #665200 40%, #0a0800 100%); }
+.bg-6 { background: radial-gradient(circle at 50% 80%, #4d0000 0%, #aa2424 40%, #1a0000 100%); }
+
+.ui-overlay {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 5;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.logo-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.metro-logo {
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(5px);
+}
+
+.brand-name {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.smart-card-text {
+    font-size: 8px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.contactless-icon {
+    width: 24px;
+    height: 24px;
+    opacity: 0.8;
+    transition: filter 0.5s ease, opacity 0.5s ease;
+}
+
+.chip {
+    width: 45px;
+    height: 35px;
+    background: linear-gradient(135deg, #d4af37, #aa7c11, #f3e5ab, #d4af37);
+    border-radius: 6px;
+    margin-top: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transition: box-shadow 0.5s ease, filter 0.5s ease;
+}
+
+.chip::before, .chip::after {
+    content: '';
+    position: absolute;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+.chip::before {
+    top: 6px; bottom: 6px; left: 12px; right: 12px;
+    border-radius: 2px;
+}
+
+.chip::after {
+    top: 17px; width: 100%; height: 1px;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.card-number {
+    font-family: 'Courier New', monospace;
+    color: rgba(255,255,255,0.9);
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.status-indicator {
+    text-align: right;
+}
+
+.status-text {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+}
+
+.status-value {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    transition: color 1.5s ease;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+body[data-section="0"] .bg-0,
+body[data-section="1"] .bg-1,
+body[data-section="2"] .bg-2,
+body[data-section="3"] .bg-3,
+body[data-section="4"] .bg-4,
+body[data-section="5"] .bg-5,
+body[data-section="6"] .bg-6 { 
+    opacity: 1; 
+}
+
+#scroll-container {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%230047b3'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23ffcc80'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23fff'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23fff'/%3E%3C/svg%3E") 16 16, grab;
+}
+
+#scroll-container:active {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%2300a859'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23fff'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='3' fill='%23ffd700'/%3E%3Ccircle cx='21' cy='23' r='3' fill='%23ffd700'/%3E%3C/svg%3E") 16 16, grabbing;
+}
+
+.text-content, nav {
+    cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='6' y='4' width='20' height='24' rx='4' fill='%230047b3'/%3E%3Crect x='8' y='18' width='16' height='2' fill='%23ffcc80'/%3E%3Crect x='9' y='7' width='14' height='8' rx='1' fill='%23050505'/%3E%3Ccircle cx='11' cy='23' r='2' fill='%23fff'/%3E%3Ccircle cx='21' cy='23' r='2' fill='%23fff'/%3E%3C/svg%3E") 16 16, default;
+}
+
+.section {
+    height: 100vh;
+    width: 100%;
+    scroll-snap-align: start;
+    display: flex;
+    align-items: center;
+    position: relative;
+    pointer-events: none; 
+}
+
+.text-content {
+    padding: 3rem;
+    max-width: 600px;
+    opacity: 0.3;
+    transform: translateY(20px);
+    transition: opacity 1s ease, transform 1s ease;
+    text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    pointer-events: auto;
+}
+
+.in-view .text-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sec-title {
+    font-family: 'Cinzel', serif;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    transition: color 1.5s ease;
+}
+
+.sec-desc {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    transition: color 1.5s ease;
+}
+
+.route-list {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.route-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.1rem;
+    color: #e0e0e0;
+}
+
+.r-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.r-dot.blue { background: #0047b3; box-shadow: 0 0 10px #0047b3; }
+.r-dot.green { background: #00a859; box-shadow: 0 0 10px #00a859; }
+.r-dot.orange { background: #ff8c00; box-shadow: 0 0 10px #ff8c00; }
+.r-dot.purple { background: #8e24aa; box-shadow: 0 0 10px #8e24aa; }
+
+.fare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.fare-table th, .fare-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: left;
+}
+
+.fare-table th {
+    color: #ffd700;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 1px;
+    border-bottom: 2px solid rgba(255, 215, 0, 0.4);
+}
+
+.restricted-list {
+    list-style-type: none;
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.restricted-list li {
+    font-size: 0.95rem;
+    color: #ffcccc;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.4;
+}
+
+.restricted-list li::before {
+    content: '✕';
+    color: #ff4444;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.warning-text {
+    margin-top: 1.5rem;
+    color: #ff6666;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+body[data-section="0"] .sec-title { color: #66b2ff; }
+body[data-section="1"] .sec-title { color: #66ffa6; }
+body[data-section="2"] .sec-title { color: #ffcc80; }
+body[data-section="3"] .sec-title { color: #e1bee7; }
+body[data-section="4"] .sec-title { color: #ffffff; }
+body[data-section="5"] .sec-title { color: #ffd700; }
+body[data-section="6"] .sec-title { color: #ff6666; }
+
+body[data-section="0"] .sec-desc { color: #cce5ff; }
+body[data-section="1"] .sec-desc { color: #b3ffcc; }
+body[data-section="2"] .sec-desc { color: #ffe0b2; }
+body[data-section="3"] .sec-desc { color: #f3e5f5; }
+body[data-section="4"] .sec-desc { color: #cccccc; }
+body[data-section="5"] .sec-desc { color: #ffe066; }
+body[data-section="6"] .sec-desc { color: #ffcccc; }
+
+body[data-section="0"] .status-value { color: #66b2ff; }
+body[data-section="1"] .status-value { color: #66ffa6; }
+body[data-section="2"] .status-value { color: #ffcc80; }
+body[data-section="3"] .status-value { color: #e1bee7; }
+body[data-section="4"] .status-value { color: #ffffff; }
+body[data-section="5"] .status-value { color: #ffd700; }
+body[data-section="6"] .status-value { color: #ff6666; }
+
+@media (min-width: 769px) {
+    .text-content { transition: opacity 1.2s ease, transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    
+    .section:nth-of-type(odd) .text-content { transform: translateX(-80px); }
+    .section:nth-of-type(odd) { justify-content: flex-start; padding-left: 10vw; text-align: left; }
+
+    .section:nth-of-type(even) .text-content { transform: translateX(80px); }
+    .section:nth-of-type(even) { justify-content: flex-end; padding-right: 10vw; text-align: right; }
+    
+    .in-view.section .text-content { transform: translateX(0); }
+
+    body[data-section="0"] .card-positioner {
+        left: 75%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(-25deg) rotateX(15deg) rotateZ(-5deg) scale(1.15) translateZ(50px);
+    }
+
+    body[data-section="1"] .card-positioner {
+        left: 25%; top: 55%;
+        transform: translate(-50%, -50%) rotateY(35deg) rotateX(-20deg) rotateZ(10deg) scale(1.25) translateZ(100px);
+    }
+    body[data-section="1"] .chip { box-shadow: 0 0 40px #d4af37; filter: brightness(1.3); }
+
+    body[data-section="2"] .card-positioner {
+        left: 75%; top: 45%;
+        transform: translate(-50%, -50%) rotateY(-40deg) rotateX(25deg) rotateZ(-10deg) scale(0.95) translateZ(-50px);
+    }
+
+    body[data-section="3"] .card-positioner {
+        left: 25%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(360deg) rotateX(5deg) rotateZ(0deg) scale(1.2) translateZ(150px);
+    }
+    body[data-section="3"] .contactless-icon { filter: drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px #e1bee7); opacity: 1; transform: scale(1.2); }
+    body[data-section="3"] .card-face { box-shadow: 0 40px 80px rgba(0, 0, 0, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+
+    body[data-section="4"] .card-positioner {
+        left: 75%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(345deg) rotateX(10deg) rotateZ(5deg) scale(1.1) translateZ(0);
+    }
+    body[data-section="4"] .route-list { align-items: flex-start; }
+
+    body[data-section="5"] .card-positioner {
+        left: 25%; top: 55%;
+        transform: translate(-50%, -50%) rotateY(330deg) rotateX(45deg) rotateZ(-15deg) scale(1.2) translateZ(80px);
+    }
+    body[data-section="5"] .fare-table { margin-left: auto; margin-right: 0; }
+
+    body[data-section="6"] .card-positioner {
+        left: 75%; top: 50%;
+        transform: translate(-50%, -50%) rotateY(35deg) rotateX(-15deg) rotateZ(10deg) scale(1.1) translateZ(50px);
+    }
+    body[data-section="6"] .restricted-list { justify-content: flex-start; text-align: left; }
+}
+
+@media (max-width: 768px) {
+    nav { 
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        padding: 0; 
+        background: rgba(5, 5, 5, 0.95);
+        border-bottom: none;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .theme-toggle {
+        position: fixed;
+        right: 1rem;
+        top: 1rem;
+        transform: none;
+    }
+
+    nav ul { 
+        display: flex;
+        gap: 0; 
+        justify-content: space-between; 
+        width: 100%; 
+        flex-wrap: nowrap; 
+        padding: 0; 
+        margin: 0;
+    }
+    
+    nav li {
+        flex: 1;
+        display: flex;
+    }
+
+    nav a { 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 12px 0 8px 0;
+        font-size: 0.65rem; 
+        letter-spacing: 1px; 
+        text-align: center; 
+        position: relative;
+        color: rgba(255,255,255,0.5);
+        gap: 0;
+    }
+    
+    .nav-icon {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+    
+    nav a.active {
+        color: #00a8ff;
+        text-shadow: 0 0 10px rgba(0, 168, 255, 0.3);
+    }
+    
+    nav a.active .nav-icon {
+        transform: translateY(-2px);
+    }
+    
+    nav a.active::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 32px;
+        height: 3px;
+        background: #00a8ff;
+        box-shadow: 0 2px 8px #00a8ff;
+        border-radius: 0 0 4px 4px;
+    }
+
+    .ui-overlay { padding: 20px; }
+    .brand-name { font-size: 12px; }
+    .card-number { font-size: 14px; }
+    
+    .sec-title { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .sec-desc, .route-item { font-size: 0.95rem; }
+    .fare-table { font-size: 0.85rem; margin-top: 1rem; }
+    .fare-table th, .fare-table td { padding: 8px 5px; }
+
+    .route-list { align-items: center; text-align: left; }
+    .fare-table { margin-left: auto; margin-right: auto; }
+    
+    .restricted-list { grid-template-columns: 1fr; gap: 0.5rem; }
+    .restricted-list li { font-size: 0.85rem; }
+    .warning-text { font-size: 0.9rem; }
+
+    .text-content {
+        position: absolute;
+        bottom: 12vh;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        width: 90%;
+        padding: 1.5rem;
+        text-align: center;
+        background: rgba(0,0,0,0.5);
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.05);
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .in-view .text-content {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .card-positioner {
+        width: 85vw;
+        top: 25vh;
+        left: 50%;
+    }
+
+    body[data-section="0"] .card-positioner { transform: translate(-50%, -50%) scale(1); }
+    body[data-section="1"] .card-positioner { transform: translate(-50%, -50%) rotateY(-15deg) rotateX(10deg) scale(1.05); }
+    body[data-section="2"] .card-positioner { transform: translate(-50%, -50%) rotateY(15deg) rotateX(5deg) scale(1.05); }
+    body[data-section="3"] .card-positioner { transform: translate(-50%, -50%) rotateY(360deg) scale(1.1); }
+    body[data-section="4"] .card-positioner { transform: translate(-50%, -50%) rotateY(345deg) scale(0.9); }
+    body[data-section="5"] .card-positioner { transform: translate(-50%, -50%) rotateY(375deg) scale(0.9); }
+    body[data-section="6"] .card-positioner { transform: translate(-50%, -50%) rotateY(15deg) scale(0.9); top: 20vh; }
+    
+    #app-footer { display: none !important; } 
+}
+</style>
+</head>
+<body data-section="0">
+
+<div id="environment-glow"></div>
+
+<div id="fixed-card-container">
+    <div class="card-positioner">
+        <div class="metro-card" id="metroCard">
+            <div class="card-face card-front">
+                <div class="layer bg-layer bg-0"></div>
+                <div class="layer bg-layer bg-1"></div>
+                <div class="layer bg-layer bg-2"></div>
+                <div class="layer bg-layer bg-3"></div>
+                <div class="layer bg-layer bg-4"></div>
+                <div class="layer bg-layer bg-5"></div>
+                <div class="layer bg-layer bg-6"></div>
+                
+                <div class="layer ui-overlay">
+                    <div class="card-header">
+                        <div class="logo-group">
+                            <div class="metro-logo">M</div>
+                            <div>
+                                <div class="brand-name">KOLKATA METRO</div>
+                                <div class="smart-card-text">Kolkata Smart Card</div>
+                            </div>
+                        </div>
+                        <svg class="contactless-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8.5 16.5a10.5 10.5 0 0 1 0-9"/>
+                            <path d="M12 19.5a14.5 14.5 0 0 1 0-15"/>
+                            <path d="M15.5 22.5a18.5 18.5 0 0 1 0-21"/>
+                            <circle cx="5" cy="12" r="1" fill="white"/>
+                        </svg>
+                    </div>
+                    
+                    <div class="chip"></div>
+                    
+                    <div class="card-footer">
+                        <div class="card-number">8129 4820 1192 3012</div>
+                        <div class="status-indicator">
+                            <div class="status-text">NETWORK STATUS</div>
+                            <div class="status-value" id="dynamic-status">VALID ALL LINES</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-face card-back">
+                <div class="mag-stripe"></div>
+                <div class="back-text">
+                    <p style="margin-bottom: 10px; color: #d4af37;">PROPERTY OF KOLKATA METRO</p>
+                    <p>If found, please return to the nearest metro station.</p>
+                    <p style="margin-top: 25px; font-size: 0.55rem; font-family: 'Courier New', monospace;">HELPLINE: 1073 / 1074</p>
+                </div>
+                <div class="back-logo">M</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button id="themeToggle" class="theme-toggle" aria-label="Toggle Theme">
+    <svg id="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <svg id="moon-icon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+</button>
+
+<nav id="main-nav">
+    <ul>
+        <li>
+            <a href="index.html" class="nav-link active">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Home</span>
+            </a>
+        </li>
+        <li>
+            <a href="time_table.html" class="nav-link">
+                <span class="nav-icon">🕰️</span>
+                <span class="nav-text">Timetable</span>
+            </a>
+        </li>
+        <li>
+            <a href="route.html" class="nav-link">
+                <span class="nav-icon">📍</span>
+                <span class="nav-text">Route</span>
+            </a>
+        </li>
+        <li>
+            <a href="fare.html" class="nav-link">
+                <span class="nav-icon">💰</span>
+                <span class="nav-text">Fare</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<div id="scroll-container">
+    <div class="section" id="home">
+        <div class="text-content">
+            <h1 class="sec-title">INDIA'S FIRST METRO</h1>
+            <p class="sec-desc">A legacy of rapid transit since 1984. The Blue Line forms the historic backbone of the City of Joy, stretching from Dakshineswar to Kavi Subhash.</p>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="text-content">
+            <h2 class="sec-title">ASIA'S FIRST UNDERWATER METRO</h2>
+            <p class="sec-desc">Experience the Green Line. Journey through Asia's first underwater transportation tunnel, plunging beneath the mighty Hooghly River.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="text-content">
+            <h2 class="sec-title">EXPANDING HORIZONS</h2>
+            <p class="sec-desc">Connecting the city like never before. The expanding Orange Line bridges crucial gaps, bringing the metropolis closer together.</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="text-content">
+            <h2 class="sec-title">ONE SMART NETWORK</h2>
+            <p class="sec-desc">Blue, Green, Orange, or Purple. Navigate the expanding, fully air-conditioned network effortlessly with a single, contactless tap.</p>
+        </div>
+    </div>
+
+    <div class="section" id="routes">
+        <div class="text-content">
+            <h2 class="sec-title">NETWORK ROUTES</h2>
+            <div class="route-list">
+                <div class="route-item"><span class="r-dot blue"></span> Dakshineswar ↔ Kavi Subhash</div>
+                <div class="route-item"><span class="r-dot green"></span> Salt Lake Sec V ↔ Howrah Maidan</div>
+                <div class="route-item"><span class="r-dot purple"></span> Joka ↔ Majerhat</div>
+                <div class="route-item"><span class="r-dot orange"></span> Kavi Subhash ↔ Hemanta Mukhopadhyay</div>
+                <div class="route-item"><span class="r-dot yellow"></span> Noapara ↔ Jai Hind Biman Bandar</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="fare">
+        <div class="text-content">
+            <h2 class="sec-title">FARE STRUCTURE</h2>
+            <p class="sec-desc">Affordable transit for everyone. Use your Smart Card for seamless travel and bonus recharge value.</p>
+            <table class="fare-table">
+                <tr><th>Distance (km)</th><th>Standard Fare</th></tr>
+                <tr><td>0 - 2 km</td><td>₹ 5.00</td></tr>
+                <tr><td>2 - 5 km</td><td>₹ 10.00</td></tr>
+                <tr><td>5 - 10 km</td><td>₹ 15.00</td></tr>
+                <tr><td>10 - 20 km</td><td>₹ 20.00</td></tr>
+                <tr><td>Above 20 km</td><td>₹ 25.00</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="section" id="regulations">
+        <div class="text-content">
+            <h2 class="sec-title">METRO REGULATIONS</h2>
+            <p class="sec-desc">For the safety and comfort of all passengers, the following items cannot be taken inside the metro premises.</p>
+            <ul class="restricted-list">
+                <li>Raw fish, meat</li>
+                <li>Sealed or unsealed charged batteries</li>
+                <li>Large quantities of fish/meat (for business)</li>
+                <li>Objects longer than 4 feet</li>
+                <li>Dynamite, explosives, flammable substances</li>
+                <li>Screwdrivers, hammers, knives, saws, tools</li>
+                <li>Petrol, acid, liquids, large batteries</li>
+                <li>Toxic substances, tear gas</li>
+                <li>Dead bodies, skeletons, human body parts</li>
+                <li>Carcasses of dead animals</li>
+            </ul>
+            <p class="warning-text">If caught carrying these, a fine will be imposed.</p>
+        </div>
+    </div>
+</div>
+
+<footer id="app-footer">
+    <p>&copy; 2026 Kolkata Metro. All rights reserved. | Helpline: 1073 / 1074</p>
+</footer>
+
+<script>
+const sections = document.querySelectorAll('.section');
+const statusValue = document.getElementById('dynamic-status');
+const scrollContainer = document.getElementById('scroll-container');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const lineStatuses = [
+    "BLUE LINE ACTIVE",
+    "GREEN LINE ACTIVE",
+    "ORANGE LINE ACTIVE",
+    "VALID ALL LINES",
+    "ROUTES MAP",
+    "FARE INFO",
+    "RESTRICTED ITEMS"
+];
+
+const observerOptions = {
+    root: scrollContainer,
+    threshold: 0.5
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            
+            const index = Array.from(sections).indexOf(entry.target);
+            document.body.setAttribute('data-section', index);
+            
+            statusValue.textContent = lineStatuses[index];
+            
+            let currentId = entry.target.id;
+            if(!currentId) currentId = 'home';
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('href') === `#${currentId}`) {
+                    link.classList.add('active');
+                }
+            });
+        } else {
+            entry.target.classList.remove('in-view');
+        }
+    });
+}, observerOptions);
+
+sections.forEach(sec => observer.observe(sec));
+
+navLinks.forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        
+        if (href.startsWith('#')) {
+            e.preventDefault();
+            const targetId = href.substring(1);
+            const targetSection = document.getElementById(targetId);
+            if(targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+});
+
+let tiltTimeout;
+const metroCard = document.getElementById('metroCard');
+let isDragging = false;
+let startX, startY;
+let rotX = 0, rotY = 0;
+
+const resetCardRotation = () => {
+    rotX = 0;
+    rotY = 0;
+    metroCard.style.transform = `rotateY(0deg) rotateX(0deg)`;
+};
+
+scrollContainer.addEventListener('mousedown', (e) => {
+    if (e.target.closest('nav') || e.target.closest('.text-content') || e.target.closest('.theme-toggle')) return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    metroCard.style.transition = 'none';
+    clearTimeout(tiltTimeout);
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const walkX = (e.clientX - startX) * 0.8;
+        const walkY = (e.clientY - startY) * 0.8;
+        
+        rotX -= walkY;
+        if (Math.cos(rotX * Math.PI / 180) < 0) {
+            rotY -= walkX;
+        } else {
+            rotY += walkX;
+        }
+        
+        metroCard.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+        
+        startX = e.clientX;
+        startY = e.clientY;
+    } else if(window.innerWidth > 768) {
+        const xAxis = (window.innerWidth / 2 - e.clientX) / 45; 
+        const yAxis = (window.innerHeight / 2 - e.clientY) / 45;
+        metroCard.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        
+        clearTimeout(tiltTimeout);
+        tiltTimeout = setTimeout(resetCardRotation, 500); 
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        metroCard.style.transition = 'transform 0.6s ease-out';
+        tiltTimeout = setTimeout(resetCardRotation, 1500);
+    }
+});
+
+scrollContainer.addEventListener('touchstart', (e) => {
+    if (e.target.closest('nav') || e.target.closest('.text-content') || e.target.closest('.theme-toggle')) return;
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    metroCard.style.transition = 'none';
+    clearTimeout(tiltTimeout);
+});
+
+scrollContainer.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    
+    const walkX = currentX - startX;
+    const walkY = currentY - startY;
+
+    if (Math.abs(walkX) > Math.abs(walkY)) {
+        e.preventDefault(); 
+    }
+
+    rotX -= walkY * 0.8;
+    if (Math.cos(rotX * Math.PI / 180) < 0) {
+        rotY -= walkX * 0.8;
+    } else {
+        rotY += walkX * 0.8;
+    }
+    
+    metroCard.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    
+    startX = currentX;
+    startY = currentY;
+}, { passive: false });
+
+scrollContainer.addEventListener('touchend', () => {
+    if (isDragging) {
+        isDragging = false;
+        metroCard.style.transition = 'transform 0.6s ease-out';
+        tiltTimeout = setTimeout(resetCardRotation, 1500);
+    }
+});
+
+document.addEventListener('mouseleave', () => {
+    if(window.innerWidth > 768 && !isDragging) {
+        resetCardRotation();
+    }
+});
+
+const themeToggleBtn = document.getElementById('themeToggle');
+const sunIcon = document.getElementById('sun-icon');
+const moonIcon = document.getElementById('moon-icon');
+
+if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+        const isLight = document.body.getAttribute('data-theme') === 'light';
+        if (isLight) {
+            document.body.removeAttribute('data-theme');
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        } else {
+            document.body.setAttribute('data-theme', 'light');
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+    });
+}
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('copy', event => event.preventDefault());
+document.addEventListener('cut', event => event.preventDefault());
+document.addEventListener('selectstart', event => event.preventDefault());
+</script>
+
+</body>
+</html>
