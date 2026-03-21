@@ -203,6 +203,13 @@ body[data-theme="light"] #environment-glow { background: radial-gradient(circle 
     transform-style: preserve-3d;
 }
 
+.spin-wrapper {
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 .metro-card {
     width: 100%;
     height: 100%;
@@ -627,6 +634,24 @@ body[data-section="6"] .status-value { color: #ff6666; }
 }
 
 @media (max-width: 768px) {
+    #scroll-container {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    #scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .section {
+        flex: 0 0 100vw;
+        width: 100vw;
+    }
+
     nav { 
         position: fixed;
         top: auto;
@@ -761,53 +786,55 @@ body[data-section="6"] .status-value { color: #ff6666; }
 
 <div id="fixed-card-container">
     <div class="card-positioner">
-        <div class="metro-card" id="metroCard">
-            <div class="card-face card-front">
-                <div class="layer bg-layer bg-0"></div>
-                <div class="layer bg-layer bg-1"></div>
-                <div class="layer bg-layer bg-2"></div>
-                <div class="layer bg-layer bg-3"></div>
-                <div class="layer bg-layer bg-4"></div>
-                <div class="layer bg-layer bg-5"></div>
-                <div class="layer bg-layer bg-6"></div>
-                
-                <div class="layer ui-overlay">
-                    <div class="card-header">
-                        <div class="logo-group">
-                            <div class="metro-logo">M</div>
-                            <div>
-                                <div class="brand-name">KOLKATA METRO</div>
-                                <div class="smart-card-text">Kolkata Smart Card</div>
+        <div class="spin-wrapper">
+            <div class="metro-card" id="metroCard">
+                <div class="card-face card-front">
+                    <div class="layer bg-layer bg-0"></div>
+                    <div class="layer bg-layer bg-1"></div>
+                    <div class="layer bg-layer bg-2"></div>
+                    <div class="layer bg-layer bg-3"></div>
+                    <div class="layer bg-layer bg-4"></div>
+                    <div class="layer bg-layer bg-5"></div>
+                    <div class="layer bg-layer bg-6"></div>
+                    
+                    <div class="layer ui-overlay">
+                        <div class="card-header">
+                            <div class="logo-group">
+                                <div class="metro-logo">M</div>
+                                <div>
+                                    <div class="brand-name">KOLKATA METRO</div>
+                                    <div class="smart-card-text">Kolkata Smart Card</div>
+                                </div>
+                            </div>
+                            <svg class="contactless-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8.5 16.5a10.5 10.5 0 0 1 0-9"/>
+                                <path d="M12 19.5a14.5 14.5 0 0 1 0-15"/>
+                                <path d="M15.5 22.5a18.5 18.5 0 0 1 0-21"/>
+                                <circle cx="5" cy="12" r="1" fill="white"/>
+                            </svg>
+                        </div>
+                        
+                        <div class="chip"></div>
+                        
+                        <div class="card-footer">
+                            <div class="card-number">8129 4820 1192 3012</div>
+                            <div class="status-indicator">
+                                <div class="status-text">NETWORK STATUS</div>
+                                <div class="status-value" id="dynamic-status">VALID ALL LINES</div>
                             </div>
                         </div>
-                        <svg class="contactless-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M8.5 16.5a10.5 10.5 0 0 1 0-9"/>
-                            <path d="M12 19.5a14.5 14.5 0 0 1 0-15"/>
-                            <path d="M15.5 22.5a18.5 18.5 0 0 1 0-21"/>
-                            <circle cx="5" cy="12" r="1" fill="white"/>
-                        </svg>
-                    </div>
-                    
-                    <div class="chip"></div>
-                    
-                    <div class="card-footer">
-                        <div class="card-number">8129 4820 1192 3012</div>
-                        <div class="status-indicator">
-                            <div class="status-text">NETWORK STATUS</div>
-                            <div class="status-value" id="dynamic-status">VALID ALL LINES</div>
-                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card-face card-back">
-                <div class="mag-stripe"></div>
-                <div class="back-text">
-                    <p style="margin-bottom: 10px; color: #d4af37;">PROPERTY OF KOLKATA METRO</p>
-                    <p>If found, please return to the nearest metro station.</p>
-                    <p style="margin-top: 25px; font-size: 0.55rem; font-family: 'Courier New', monospace;">HELPLINE: 1073 / 1074</p>
+                
+                <div class="card-face card-back">
+                    <div class="mag-stripe"></div>
+                    <div class="back-text">
+                        <p style="margin-bottom: 10px; color: #d4af37;">PROPERTY OF KOLKATA METRO</p>
+                        <p>If found, please return to the nearest metro station.</p>
+                        <p style="margin-top: 25px; font-size: 0.55rem; font-family: 'Courier New', monospace;">HELPLINE: 1073 / 1074</p>
+                    </div>
+                    <div class="back-logo">M</div>
                 </div>
-                <div class="back-logo">M</div>
             </div>
         </div>
     </div>
@@ -840,20 +867,20 @@ body[data-section="6"] .status-value { color: #ff6666; }
         </li>
         <li>
             <a href="time_table.html" class="nav-link">
-                <span class="nav-icon">🕰️</span>
-                <span class="nav-text">Timetable</span>
-            </a>
-        </li>
-        <li>
-            <a href="route.html" class="nav-link">
                 <span class="nav-icon">📍</span>
-                <span class="nav-text">Route</span>
+                <span class="nav-text">Time Table</span>
             </a>
         </li>
         <li>
             <a href="fare.html" class="nav-link">
                 <span class="nav-icon">💰</span>
                 <span class="nav-text">Fare</span>
+            </a>
+        </li>
+        <li>
+            <a href="route.html" class="nav-link">
+                <span class="nav-icon">🕰️</span>
+                <span class="nav-text">Routes</span>
             </a>
         </li>
     </ul>
@@ -962,6 +989,9 @@ const observerOptions = {
     threshold: 0.5
 };
 
+let baseSpin = 0;
+let lastSectionIndex = -1;
+
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -971,6 +1001,14 @@ const observer = new IntersectionObserver((entries) => {
             document.body.setAttribute('data-section', index);
             
             statusValue.textContent = lineStatuses[index];
+            
+            if (window.innerWidth <= 768 && index !== lastSectionIndex) {
+                if (lastSectionIndex !== -1) {
+                    baseSpin += 360;
+                    if (spinWrapper) spinWrapper.style.transform = `rotateY(${baseSpin}deg)`;
+                }
+                lastSectionIndex = index;
+            }
             
             let currentId = entry.target.id;
             if(!currentId) currentId = 'home';
@@ -1006,6 +1044,7 @@ navLinks.forEach(anchor => {
 
 let tiltTimeout;
 const metroCard = document.getElementById('metroCard');
+const spinWrapper = document.querySelector('.spin-wrapper');
 let isDragging = false;
 let startX, startY;
 let rotX = 0, rotY = 0;
@@ -1077,8 +1116,10 @@ scrollContainer.addEventListener('touchmove', (e) => {
     const walkX = currentX - startX;
     const walkY = currentY - startY;
 
-    if (Math.abs(walkX) > Math.abs(walkY)) {
-        e.preventDefault(); 
+    if (window.innerWidth > 768) {
+        if (Math.abs(walkX) > Math.abs(walkY)) {
+            e.preventDefault(); 
+        }
     }
 
     rotX -= walkY * 0.8;
